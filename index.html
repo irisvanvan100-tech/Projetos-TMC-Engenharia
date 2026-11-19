@@ -92,10 +92,9 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ===== COLE AQUI os dados do seu projeto Supabase (Project Settings > API) ===== */
-const SUPABASE_URL = "https://aaajvihtdhpootilcgll.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Qc3dWQs2NjcrePWpmrGnTQ_Z2YxAduq";
+
 /* ================================================================================ */
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient("https://aaajvihtdhpootilcgll.supabase.co" , "sb_publishable_Qc3dWQs2NjcrePWpmrGnTQ_Z2YxAduq");
 const $ = id => document.getElementById(id);
 const brl = v => (+v || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
