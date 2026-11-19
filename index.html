@@ -105,6 +105,12 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
   <div id="msg">Carregando…</div>
   <div class="scroll"><table><thead><tr><th>Data</th><th>Obra</th><th>Fornecedor / item</th><th>Categoria</th><th class="r">Valor</th><th>Comp.</th><th>Conf.</th><th></th></tr></thead><tbody id="tL"></tbody></table></div>
 </section>
+<section class="edit"><h2>Gerenciar obras</h2>
+  <div class="row" style="margin-bottom:10px"><label style="flex:1;min-width:180px">Nova obra<input id="nObra" placeholder="Nome da obra"></label><button id="bObra">Adicionar obra</button></div>
+  <div class="thumbs" id="lObras"></div></section>
+<section class="edit" style="border-color:var(--bad)"><h2 style="color:var(--bad)">Encerrar prestação de contas</h2>
+  <p style="margin:0 0 10px;color:var(--mute);font-size:13px">Apaga todos os lançamentos e todas as fotos e zera o valor recebido em caixa, para começar uma nova prestação. Obras e categorias continuam cadastradas. Gere o PDF antes: não dá para desfazer.</p>
+  <button id="bZerar" style="background:var(--bad)">Zerar tudo</button></section>
 </main>
 
 <div id="modal" class="hide"><div class="box"><img id="mImg" alt="comprovante"><p id="mCap"></p>
@@ -153,6 +159,7 @@ async function load() {
 }
 
 function render() {
+  $("lObras").innerHTML = obras.map((o, i) => `<span class="tag ok" style="padding:4px 6px 4px 12px">${esc(o)} <button class="ghost" data-i="${i}" title="Remover obra" style="padding:0 6px">✕</button></span>`).join("");
   const sum = l => l.reduce((a, r) => a + (+r.valor || 0), 0);
   const tot = sum(rows), sem = sum(rows.filter(r => !r.comprovante)), saldo = recebido - tot;
   $("cRec").textContent = brl(recebido); $("cGasto").textContent = brl(tot);
@@ -301,6 +308,46 @@ $("bPdf").onclick = async () => {
     doc.save(`prestacao-de-contas-${(ob || "todas").replace(/\s+/g, "-")}.pdf`); st("");
   } catch (x) { fail(x); st(""); }
   $("bPdf").disabled = false;
+};
+
+async function todosArquivos() {
+  const out = [], b = sb.storage.from(BUCKET), {data:raiz, error} = await b.list("", {limit:1000}); if (error) throw error;
+  for (const p of raiz || []) {
+    if (p.id) { out.push(p.name); continue; }
+    const {data:fs, error:e2} = await b.list(p.name, {limit:1000}); if (e2) throw e2;
+    (fs || []).forEach(f => out.push(p.name + "/" + f.name));
+  }
+  return out;
+}
+$("bZerar").onclick = async () => {
+  if (leitor) return;
+  if (!confirm("Você já gerou o PDF da prestação de contas?\\n\\nIsso vai APAGAR todos os lançamentos, todas as fotos e zerar o caixa. Não dá para desfazer.")) return;
+  if ((prompt("Para confirmar, digite ZERAR:") || "").trim().toUpperCase() !== "ZERAR") return alert("Cancelado. Nada foi apagado.");
+  $("bZerar").disabled = true;
+  try {
+    st("Apagando fotos…");
+    const arqs = await todosArquivos();
+    for (let i = 0; i < arqs.length; i += 100) { const r = await sb.storage.from(BUCKET).remove(arqs.slice(i, i + 100)); if (r.error) throw r.error; }
+    st("Apagando lançamentos…");
+    const d = await sb.from("lancamentos").delete().gt("id", 0); if (d.error) throw d.error;
+    const c = await sb.from("caixa").upsert({id:1, recebido:0}); if (c.error) throw c.error;
+    st(""); await load(); alert("Pronto! Tudo foi zerado.");
+  } catch (x) { fail(x); st(""); }
+  $("bZerar").disabled = false;
+};
+
+$("bObra").onclick = async () => {
+  if (leitor) return; const nome = $("nObra").value.trim(); if (!nome) return;
+  if (obras.some(o => o.toLowerCase() === nome.toLowerCase())) return alert("Essa obra já existe.");
+  const {error} = await sb.from("obras").insert({nome}); if (error) return fail(error);
+  $("nObra").value = ""; load();
+};
+$("lObras").onclick = async e => {
+  const b = e.target.closest("button[data-i]"); if (!b || leitor) return; const nome = obras[+b.dataset.i]; if (!nome) return;
+  const {count, error} = await sb.from("lancamentos").select("id", {count:"exact", head:true}).eq("obra", nome); if (error) return fail(error);
+  if (count > 0) return alert(`A obra "${nome}" tem ${count} lançamento(s). Exclua os lançamentos dela (ou use "Zerar tudo" ao encerrar a prestação) antes de remover a obra.`);
+  if (!confirm(`Remover a obra "${nome}"?`)) return;
+  const d = await sb.from("obras").delete().eq("nome", nome); if (d.error) return fail(d.error); load();
 };
 $("fd").value = new Date().toISOString().slice(0, 10);
 sb.auth.onAuthStateChange((_ev, session) => tela(session));
