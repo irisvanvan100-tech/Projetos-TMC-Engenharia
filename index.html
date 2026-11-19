@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prestação de Contas | Obras</title>
+<style>
+:root{--bg:#F3EFE6;--card:#fff9f0;--sand:#E3C4A8;--olive:#7A8B6F;--ink:#2e342a;--mute:#6b7163;--line:#e2d8c6;--bad:#b4533c}
+@media (prefers-color-scheme:dark){:root{--bg:#23261f;--card:#2d3128;--sand:#8a6d55;--olive:#9bb08c;--ink:#f1ece0;--mute:#b3b8a6;--line:#444a3b;--bad:#e08a72;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:1000px;margin:0 auto;padding:16px}
+header{background:var(--olive);color:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header h1{margin:0;font-size:20px}header p{margin:2px 0 0;opacity:.9;font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.card small{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.card b{display:block;font-size:20px;margin-top:2px}
+.card.sand{background:var(--sand);border-color:var(--sand);color:#2e342a}.card.sand small{color:#4d4538}
+.bad{color:var(--bad)}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:15px;color:var(--olive)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;color:var(--mute);text-transform:uppercase;padding:6px 8px;border-bottom:2px solid var(--sand)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}.r{text-align:right;white-space:nowrap}
+.bar{height:8px;border-radius:4px;background:var(--line);margin-top:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--olive)}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+label{font-size:12px;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+input,select,button{font:inherit;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button{cursor:pointer;background:var(--olive);color:#fff;border:0;font-weight:600}
+button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;color:var(--bad);padding:2px 6px}
+.full{grid-column:1/-1}
+.tag{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;background:var(--olive);color:#fff}
+.tag.no{background:var(--bad)}.tag.ok{background:var(--sand);color:#2e342a}
+.row{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+#msg,#err{color:var(--mute);font-size:13px;padding:8px 0}#err{color:var(--bad)}
+#login{max-width:360px;margin:12vh auto;padding:16px}
+#login form{grid-template-columns:1fr}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="login" class="hide">
+  <section>
+    <h2>Prestação de Contas | Obras</h2>
+    <form id="fl">
+      <label>E-mail<input id="le" type="email" autocomplete="username" required></label>
+      <label>Senha<input id="lp" type="password" autocomplete="current-password" required></label>
+      <button>Entrar</button>
+      <div id="lerr" class="bad"></div>
+    </form>
+  </section>
+</div>
+
+<main id="app" class="hide">
+<header>
+  <div><h1>Prestação de Contas | Obras</h1><p>Comprou → fotografou → registrou → enviou</p></div>
+  <button class="sec" id="sair">Sair</button>
+</header>
+<div id="err"></div>
+<div class="cards">
+  <div class="card sand"><small>Recebido (caixa)</small><b id="cRec">—</b><button class="sec" id="bRec" style="margin-top:6px;padding:4px 10px">Editar</button></div>
+  <div class="card"><small>Total gasto</small><b id="cGasto">—</b></div>
+  <div class="card"><small>Saldo em caixa</small><b id="cSaldo">—</b></div>
+  <div class="card"><small>Sem comprovante</small><b id="cSem">—</b></div>
+  <div class="card"><small>Lançamentos</small><b id="cQtd">—</b></div>
+</div>
+<div class="grid2">
+  <section><h2>Por obra</h2><div class="scroll"><table><thead><tr><th>Obra</th><th class="r">Gasto</th><th class="r">Sem comp.</th></tr></thead><tbody id="tObra"></tbody></table></div></section>
+  <section><h2>Por categoria</h2><div id="tCat"></div></section>
+</div>
+<section><h2>Novo lançamento</h2>
+<form id="f">
+  <label>Data<input type="date" id="fd" required></label>
+  <label>Obra<select id="fo"></select></label>
+  <label>Fornecedor<input id="ff" required></label>
+  <label>Categoria<select id="fc"></select></label>
+  <label>Valor (R$)<input id="fv" type="number" step="0.01" min="0" required></label>
+  <label>Comprovante<select id="fp"><option value="1">Sim</option><option value="0">Não</option></select></label>
+  <label class="full">Item / descrição<input id="fi" required></label>
+  <button class="full">Adicionar</button>
+</form></section>
+<section>
+  <div class="row"><h2 style="margin:0;flex:1">Lançamentos</h2>
+  <label>Filtrar obra<select id="flt"></select></label></div>
+  <div id="msg">Carregando…</div>
+  <div class="scroll"><table><thead><tr><th>Data</th><th>Obra</th><th>Fornecedor / item</th><th>Categoria</th><th class="r">Valor</th><th>Comp.</th><th>Conf.</th><th></th></tr></thead><tbody id="tL"></tbody></table></div>
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ===== COLE AQUI os dados do seu projeto Supabase (Project Settings > API) ===== */
+const SUPABASE_URL = "aaajvihtdhpootilcgll";
+const SUPABASE_KEY = "sb_publishable_Qc3dWQs2NjcrePWpmrGnTQ_Z2YxAduq";
+/* ================================================================================ */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const brl = v => (+v || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let rows = [], obras = [], cats = [], recebido = 0;
+
+const opts = (a, all) => (all ? '<option value="">Todas as obras</option>' : "") + a.map(x => `<option>${esc(x)}</option>`).join("");
+const fail = e => { $("err").textContent = e ? "Erro: " + (e.message || e) : ""; };
+
+async function load() {
+  const [o, c, l, k] = await Promise.all([
+    sb.from("obras").select("nome").order("nome"),
+    sb.from("categorias").select("nome").order("nome"),
+    sb.from("lancamentos").select("*").order("data", {ascending:false}).order("id", {ascending:false}),
+    sb.from("caixa").select("recebido").eq("id", 1).maybeSingle()
+  ]);
+  const e = o.error || c.error || l.error || k.error;
+  if (e) return fail(e);
+  fail(null);
+  obras = o.data.map(x => x.nome); cats = c.data.map(x => x.nome);
+  rows = l.data; recebido = k.data ? +k.data.recebido : 0;
+  const sel = $("flt").value;
+  $("fo").innerHTML = opts(obras); $("fc").innerHTML = opts(cats); $("flt").innerHTML = opts(obras, 1); $("flt").value = sel;
+  render();
+}
+
+function render() {
+  const sum = l => l.reduce((a, r) => a + (+r.valor || 0), 0);
+  const tot = sum(rows), sem = sum(rows.filter(r => !r.comprovante)), saldo = recebido - tot;
+  $("cRec").textContent = brl(recebido); $("cGasto").textContent = brl(tot);
+  $("cSaldo").textContent = brl(saldo); $("cSaldo").className = saldo < 0 ? "bad" : "";
+  $("cSem").textContent = brl(sem); $("cQtd").textContent = rows.length;
+  $("tObra").innerHTML = obras.map(o => { const l = rows.filter(r => r.obra === o);
+    return `<tr><td>${esc(o)}</td><td class="r">${brl(sum(l))}</td><td class="r">${brl(sum(l.filter(r => !r.comprovante)))}</td></tr>`; }).join("");
+  const cv = cats.map(c => [c, sum(rows.filter(r => r.categoria === c))]), mx = Math.max(1, ...cv.map(x => x[1]));
+  $("tCat").innerHTML = cv.map(([c, v]) => `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>${esc(c)}</span><b>${brl(v)}</b></div><div class="bar"><i style="width:${v / mx * 100}%"></i></div></div>`).join("");
+  const f = $("flt").value, l = rows.filter(r => !f || r.obra === f);
+  $("msg").style.display = l.length ? "none" : ""; if (!l.length) $("msg").textContent = "Nenhum lançamento.";
+  $("tL").innerHTML = l.map(r => `<tr><td>${esc(r.data.split("-").reverse().slice(0, 2).join("/"))}</td><td>${esc(r.obra)}</td>
+  <td><b>${esc(r.fornecedor)}</b><br><span style="color:var(--mute)">${esc(r.descricao)}</span></td><td>${esc(r.categoria)}</td><td class="r">${brl(r.valor)}</td>
+  <td><button class="tag ${r.comprovante ? "" : "no"}" data-t="comprovante" data-id="${r.id}">${r.comprovante ? "Sim" : "Não"}</button></td>
+  <td><button class="tag ${r.conferido ? "ok" : "no"}" data-t="conferido" data-id="${r.id}">${r.conferido ? "OK" : "Pendente"}</button></td>
+  <td><button class="ghost" data-t="x" data-id="${r.id}" title="Excluir">✕</button></td></tr>`).join("");
+}
+
+$("flt").onchange = render;
+$("tL").onclick = async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const r = rows.find(x => String(x.id) === b.dataset.id); if (!r) return;
+  let res;
+  if (b.dataset.t === "x") { if (!confirm("Excluir este lançamento?")) return; res = await sb.from("lancamentos").delete().eq("id", r.id); }
+  else res = await sb.from("lancamentos").update({[b.dataset.t]: !r[b.dataset.t]}).eq("id", r.id);
+  if (res.error) return fail(res.error); load();
+};
+$("f").onsubmit = async e => {
+  e.preventDefault();
+  const {error} = await sb.from("lancamentos").insert({data:$("fd").value, obra:$("fo").value, fornecedor:$("ff").value.trim(),
+    descricao:$("fi").value.trim(), categoria:$("fc").value, valor:parseFloat($("fv").value), comprovante:$("fp").value === "1", conferido:false});
+  if (error) return fail(error);
+  $("ff").value = $("fi").value = $("fv").value = ""; load();
+};
+$("bRec").onclick = async () => {
+  const v = prompt("Dinheiro recebido / adiantamentos (R$):", recebido); if (v === null) return;
+  const n = parseFloat(String(v).replace(",", ".")); if (isNaN(n)) return;
+  const {error} = await sb.from("caixa").upsert({id:1, recebido:n}); if (error) return fail(error); load();
+};
+
+$("fl").onsubmit = async e => {
+  e.preventDefault(); $("lerr").textContent = "";
+  const {error} = await sb.auth.signInWithPassword({email:$("le").value.trim(), password:$("lp").value});
+  if (error) $("lerr").textContent = "E-mail ou senha incorretos.";
+};
+$("sair").onclick = () => sb.auth.signOut();
+
+function tela(session) {
+  $("login").classList.toggle("hide", !!session);
+  $("app").classList.toggle("hide", !session);
+  if (session) load();
+}
+$("fd").value = new Date().toISOString().slice(0, 10);
+sb.auth.onAuthStateChange((_ev, session) => tela(session));
+sb.auth.getSession().then(({data}) => tela(data.session));
+</script>
+</body>
+</html>
