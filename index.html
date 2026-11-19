@@ -38,6 +38,17 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 #login{max-width:360px;margin:12vh auto;padding:16px}
 #login form{grid-template-columns:1fr}
 .hide{display:none!important}
+.leitor .edit{display:none!important}.leitor .tag{pointer-events:none}
+#pdf .row>*{flex:1;min-width:140px}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.thumbs img,.prev img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--line)}
+.mini{padding:3px 9px;font-size:12px;background:var(--sand);color:#2e342a}
+.prev{display:flex;gap:8px;flex-wrap:wrap}.prev span{position:relative}
+.prev b{position:absolute;top:-6px;right:-6px;background:var(--bad);color:#fff;border-radius:50%;width:20px;height:20px;text-align:center;line-height:20px;font-size:12px;cursor:pointer}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+#modal .box{background:var(--card);border-radius:14px;padding:12px;max-width:min(92vw,720px);max-height:94vh;overflow:auto}
+#modal img{max-width:100%;max-height:62vh;display:block;margin:0 auto;border-radius:8px}
+#modal p{margin:10px 0 0;font-size:14px}
 </style>
 </head>
 <body>
@@ -45,9 +56,10 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
   <section>
     <h2>Prestação de Contas | Obras</h2>
     <form id="fl">
-      <label>E-mail<input id="le" type="email" autocomplete="username" required></label>
+      <label id="lbE">E-mail<input id="le" type="email" autocomplete="username"></label>
       <label>Senha<input id="lp" type="password" autocomplete="current-password" required></label>
       <button>Entrar</button>
+      <a href="#" id="tg" style="font-size:13px;color:var(--olive)">Acesso só com senha (visualização)</a>
       <div id="lerr" class="bad"></div>
     </form>
   </section>
@@ -58,9 +70,9 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
   <div><h1>Prestação de Contas | Obras</h1><p>Comprou → fotografou → registrou → enviou</p></div>
   <button class="sec" id="sair">Sair</button>
 </header>
-<div id="err"></div>
+<div id="err"></div><div id="st" style="color:var(--olive);font-size:13px"></div>
 <div class="cards">
-  <div class="card sand"><small>Recebido (caixa)</small><b id="cRec">—</b><button class="sec" id="bRec" style="margin-top:6px;padding:4px 10px">Editar</button></div>
+  <div class="card sand"><small>Recebido (caixa)</small><b id="cRec">—</b><button class="sec edit" id="bRec" style="margin-top:6px;padding:4px 10px">Editar</button></div>
   <div class="card"><small>Total gasto</small><b id="cGasto">—</b></div>
   <div class="card"><small>Saldo em caixa</small><b id="cSaldo">—</b></div>
   <div class="card"><small>Sem comprovante</small><b id="cSem">—</b></div>
@@ -70,7 +82,7 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
   <section><h2>Por obra</h2><div class="scroll"><table><thead><tr><th>Obra</th><th class="r">Gasto</th><th class="r">Sem comp.</th></tr></thead><tbody id="tObra"></tbody></table></div></section>
   <section><h2>Por categoria</h2><div id="tCat"></div></section>
 </div>
-<section><h2>Novo lançamento</h2>
+<section class="edit"><h2>Novo lançamento</h2>
 <form id="f">
   <label>Data<input type="date" id="fd" required></label>
   <label>Obra<select id="fo"></select></label>
@@ -79,8 +91,14 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
   <label>Valor (R$)<input id="fv" type="number" step="0.01" min="0" required></label>
   <label>Comprovante<select id="fp"><option value="1">Sim</option><option value="0">Não</option></select></label>
   <label class="full">Item / descrição<input id="fi" required></label>
-  <button class="full">Adicionar</button>
+  <div class="full"><small style="color:var(--mute)">Comprovante (foto)</small>
+    <div class="row" style="margin-top:4px"><button type="button" class="sec" id="bCamF">📷 Câmera</button><button type="button" class="sec" id="bGalF">🖼️ Galeria</button></div>
+    <div class="prev" id="prev" style="margin-top:8px"></div></div>
+  <button class="full" id="bAdd">Adicionar</button>
 </form></section>
+<section id="pdf"><h2>Gerar PDF da prestação de contas</h2>
+  <div class="row"><label>Obra<select id="pObra"></select></label><label>De<input type="date" id="pDe"></label><label>Até<input type="date" id="pAte"></label>
+  <button id="bPdf">Gerar PDF</button></div></section>
 <section>
   <div class="row"><h2 style="margin:0;flex:1">Lançamentos</h2>
   <label>Filtrar obra<select id="flt"></select></label></div>
@@ -89,34 +107,48 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 </section>
 </main>
 
+<div id="modal" class="hide"><div class="box"><img id="mImg" alt="comprovante"><p id="mCap"></p>
+<div class="row" style="margin-top:10px"><button class="sec" id="mFecha">Fechar</button><button class="ghost edit" id="mDel">Excluir foto</button></div></div></div>
+<input type="file" id="inCamF" accept="image/*" capture="environment" class="hide">
+<input type="file" id="inGalF" accept="image/*" multiple class="hide">
+<input type="file" id="inCamR" accept="image/*" capture="environment" class="hide">
+<input type="file" id="inGalR" accept="image/*" multiple class="hide">
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ===== COLE AQUI os dados do seu projeto Supabase (Project Settings > API) ===== */
-
+const SUPABASE_URL = "https://aaajvihtdhpootilcgll.supabase.co";
+const LEITOR_EMAIL = "leitor@prestacao-obras.com"; // e-mail fixo do acesso só-senha
+const SUPABASE_KEY = "sb_publishable_Qc3dWQs2NjcrePWpmrGnTQ_Z2YxAduq";
 /* ================================================================================ */
-const sb = supabase.createClient("https://aaajvihtdhpootilcgll.supabase.co" , "sb_publishable_Qc3dWQs2NjcrePWpmrGnTQ_Z2YxAduq");
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
 const brl = v => (+v || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let rows = [], obras = [], cats = [], recebido = 0;
+const BUCKET = "comprovantes";
+let leitor = false, soSenha = false, rows = [], obras = [], cats = [], recebido = 0, fotos = [], urls = {}, pend = [], alvo = null, fotoAberta = null;
+const st = t => { $("st").textContent = t || ""; };
 
 const opts = (a, all) => (all ? '<option value="">Todas as obras</option>' : "") + a.map(x => `<option>${esc(x)}</option>`).join("");
 const fail = e => { $("err").textContent = e ? "Erro: " + (e.message || e) : ""; };
 
 async function load() {
-  const [o, c, l, k] = await Promise.all([
+  const [o, c, l, k, fo] = await Promise.all([
     sb.from("obras").select("nome").order("nome"),
     sb.from("categorias").select("nome").order("nome"),
     sb.from("lancamentos").select("*").order("data", {ascending:false}).order("id", {ascending:false}),
-    sb.from("caixa").select("recebido").eq("id", 1).maybeSingle()
+    sb.from("caixa").select("recebido").eq("id", 1).maybeSingle(),
+    sb.from("comprovantes").select("*").order("id")
   ]);
-  const e = o.error || c.error || l.error || k.error;
+  const e = o.error || c.error || l.error || k.error || fo.error;
   if (e) return fail(e);
   fail(null);
   obras = o.data.map(x => x.nome); cats = c.data.map(x => x.nome);
-  rows = l.data; recebido = k.data ? +k.data.recebido : 0;
+  rows = l.data; recebido = k.data ? +k.data.recebido : 0; fotos = fo.data; urls = {};
+  if (fotos.length) { const {data} = await sb.storage.from(BUCKET).createSignedUrls(fotos.map(f => f.caminho), 3600);
+    (data || []).forEach(x => { if (x.signedUrl) urls[x.path] = x.signedUrl; }); }
   const sel = $("flt").value;
-  $("fo").innerHTML = opts(obras); $("fc").innerHTML = opts(cats); $("flt").innerHTML = opts(obras, 1); $("flt").value = sel;
+  $("fo").innerHTML = opts(obras); $("fc").innerHTML = opts(cats); $("flt").innerHTML = opts(obras, 1); const po = $("pObra").value; $("pObra").innerHTML = opts(obras, 1); $("pObra").value = po; $("flt").value = sel;
   render();
 }
 
@@ -133,27 +165,76 @@ function render() {
   const f = $("flt").value, l = rows.filter(r => !f || r.obra === f);
   $("msg").style.display = l.length ? "none" : ""; if (!l.length) $("msg").textContent = "Nenhum lançamento.";
   $("tL").innerHTML = l.map(r => `<tr><td>${esc(r.data.split("-").reverse().slice(0, 2).join("/"))}</td><td>${esc(r.obra)}</td>
-  <td><b>${esc(r.fornecedor)}</b><br><span style="color:var(--mute)">${esc(r.descricao)}</span></td><td>${esc(r.categoria)}</td><td class="r">${brl(r.valor)}</td>
+  <td><b>${esc(r.fornecedor)}</b><br><span style="color:var(--mute)">${esc(r.descricao)}</span>
+  <div class="thumbs">${fotos.filter(f => f.lancamento_id === r.id).map(f => `<img src="${esc(urls[f.caminho] || "")}" data-foto="${f.id}" alt="comprovante">`).join("")}
+  <button class="mini edit" data-t="cam" data-id="${r.id}">📷</button><button class="mini edit" data-t="gal" data-id="${r.id}">🖼️</button></div></td><td>${esc(r.categoria)}</td><td class="r">${brl(r.valor)}</td>
   <td><button class="tag ${r.comprovante ? "" : "no"}" data-t="comprovante" data-id="${r.id}">${r.comprovante ? "Sim" : "Não"}</button></td>
   <td><button class="tag ${r.conferido ? "ok" : "no"}" data-t="conferido" data-id="${r.id}">${r.conferido ? "OK" : "Pendente"}</button></td>
-  <td><button class="ghost" data-t="x" data-id="${r.id}" title="Excluir">✕</button></td></tr>`).join("");
+  <td><button class="ghost edit" data-t="x" data-id="${r.id}" title="Excluir">✕</button></td></tr>`).join("");
 }
 
 $("flt").onchange = render;
 $("tL").onclick = async e => {
+  const im = e.target.closest("img[data-foto]"); if (im) return abrir(+im.dataset.foto);
   const b = e.target.closest("button"); if (!b) return;
-  const r = rows.find(x => String(x.id) === b.dataset.id); if (!r) return;
+  if (b.dataset.t === "cam" || b.dataset.t === "gal") { alvo = +b.dataset.id; return $(b.dataset.t === "cam" ? "inCamR" : "inGalR").click(); }
+  const r = rows.find(x => String(x.id) === b.dataset.id); if (!r || leitor) return;
   let res;
-  if (b.dataset.t === "x") { if (!confirm("Excluir este lançamento?")) return; res = await sb.from("lancamentos").delete().eq("id", r.id); }
+  if (b.dataset.t === "x") { if (!confirm("Excluir este lançamento e as fotos dele?")) return;
+    const ps = fotos.filter(f => f.lancamento_id === r.id).map(f => f.caminho); if (ps.length) await sb.storage.from(BUCKET).remove(ps);
+    res = await sb.from("lancamentos").delete().eq("id", r.id); }
   else res = await sb.from("lancamentos").update({[b.dataset.t]: !r[b.dataset.t]}).eq("id", r.id);
   if (res.error) return fail(res.error); load();
 };
 $("f").onsubmit = async e => {
-  e.preventDefault();
-  const {error} = await sb.from("lancamentos").insert({data:$("fd").value, obra:$("fo").value, fornecedor:$("ff").value.trim(),
-    descricao:$("fi").value.trim(), categoria:$("fc").value, valor:parseFloat($("fv").value), comprovante:$("fp").value === "1", conferido:false});
-  if (error) return fail(error);
-  $("ff").value = $("fi").value = $("fv").value = ""; load();
+  e.preventDefault(); if (leitor) return; $("bAdd").disabled = true;
+  try {
+    const {data, error} = await sb.from("lancamentos").insert({data:$("fd").value, obra:$("fo").value, fornecedor:$("ff").value.trim(),
+      descricao:$("fi").value.trim(), categoria:$("fc").value, valor:parseFloat($("fv").value), comprovante:$("fp").value === "1" || pend.length > 0, conferido:false}).select("id").single();
+    if (error) throw error;
+    if (pend.length) await enviar(data.id, pend);
+    $("ff").value = $("fi").value = $("fv").value = ""; pend = []; prev(); st(""); await load();
+  } catch (x) { fail(x); st(""); }
+  $("bAdd").disabled = false;
+};
+function compress(file) { return new Promise((ok, no) => { const img = new Image(), u = URL.createObjectURL(file);
+  img.onload = () => { const s = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+    c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(u); c.toBlob(b => b ? ok(b) : no(new Error("Falha ao reduzir a foto")), "image/jpeg", 0.75); };
+  img.onerror = () => { URL.revokeObjectURL(u); no(new Error("Não foi possível ler a imagem")); }; img.src = u; }); }
+async function enviar(id, files) {
+  let n = 0;
+  for (const f of files) {
+    st(`Enviando foto ${++n} de ${files.length}…`);
+    const blob = await compress(f), path = `${id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const up = await sb.storage.from(BUCKET).upload(path, blob, {contentType:"image/jpeg"}); if (up.error) throw up.error;
+    const ins = await sb.from("comprovantes").insert({lancamento_id:id, caminho:path}); if (ins.error) throw ins.error;
+  }
+  await sb.from("lancamentos").update({comprovante:true}).eq("id", id);
+}
+function prev() {
+  $("prev").innerHTML = pend.map((f, i) => `<span><img src="${URL.createObjectURL(f)}" alt=""><b data-i="${i}">✕</b></span>`).join("");
+}
+$("prev").onclick = e => { const b = e.target.closest("b[data-i]"); if (b) { pend.splice(+b.dataset.i, 1); prev(); } };
+$("bCamF").onclick = () => $("inCamF").click(); $("bGalF").onclick = () => $("inGalF").click();
+["inCamF", "inGalF"].forEach(id => $(id).onchange = e => { pend.push(...e.target.files); e.target.value = ""; prev(); });
+["inCamR", "inGalR"].forEach(id => $(id).onchange = async e => {
+  const fs = [...e.target.files]; e.target.value = ""; if (leitor || !fs.length || !alvo) return;
+  try { await enviar(alvo, fs); st(""); await load(); } catch (x) { fail(x); st(""); }
+});
+function abrir(id) {
+  const f = fotos.find(x => x.id === id), r = f && rows.find(x => x.id === f.lancamento_id); if (!r) return;
+  fotoAberta = f; $("mImg").src = urls[f.caminho] || "";
+  $("mCap").innerHTML = `<b>${esc(r.fornecedor)}</b> — ${esc(r.descricao)}<br>${esc(r.data.split("-").reverse().join("/"))} | ${esc(r.obra)} | ${esc(r.categoria)} | <b>${brl(r.valor)}</b>`;
+  $("modal").classList.remove("hide");
+}
+const fechar = () => { $("modal").classList.add("hide"); fotoAberta = null; };
+$("mFecha").onclick = fechar; $("modal").onclick = e => { if (e.target.id === "modal") fechar(); };
+$("mDel").onclick = async () => {
+  if (leitor || !fotoAberta || !confirm("Excluir esta foto?")) return;
+  const rm = await sb.storage.from(BUCKET).remove([fotoAberta.caminho]); if (rm.error) return fail(rm.error);
+  const d = await sb.from("comprovantes").delete().eq("id", fotoAberta.id); if (d.error) return fail(d.error);
+  fechar(); load();
 };
 $("bRec").onclick = async () => {
   const v = prompt("Dinheiro recebido / adiantamentos (R$):", recebido); if (v === null) return;
@@ -161,18 +242,66 @@ $("bRec").onclick = async () => {
   const {error} = await sb.from("caixa").upsert({id:1, recebido:n}); if (error) return fail(error); load();
 };
 
+$("tg").onclick = e => { e.preventDefault(); soSenha = !soSenha; $("lbE").classList.toggle("hide", soSenha); $("le").required = !soSenha;
+  $("tg").textContent = soSenha ? "Entrar com e-mail e senha" : "Acesso só com senha (visualização)"; };
 $("fl").onsubmit = async e => {
   e.preventDefault(); $("lerr").textContent = "";
-  const {error} = await sb.auth.signInWithPassword({email:$("le").value.trim(), password:$("lp").value});
-  if (error) $("lerr").textContent = "E-mail ou senha incorretos.";
+  const email = soSenha ? LEITOR_EMAIL : $("le").value.trim();
+  if (!email) return;
+  const {error} = await sb.auth.signInWithPassword({email, password:$("lp").value});
+  if (error) $("lerr").textContent = soSenha ? "Senha incorreta." : "E-mail ou senha incorretos.";
 };
 $("sair").onclick = () => sb.auth.signOut();
 
 function tela(session) {
+  leitor = !!session && (session.user.email || "").toLowerCase() === LEITOR_EMAIL;
+  document.body.classList.toggle("leitor", leitor);
   $("login").classList.toggle("hide", !!session);
   $("app").classList.toggle("hide", !session);
   if (session) load();
 }
+
+const money = v => brl(v).replace(/\u00a0/g, " "), dbr = d => d.split("-").reverse().join("/");
+const imgInfo = u => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error("Falha ao abrir uma foto")); i.src = u; });
+async function dataUrl(url) { const r = await fetch(url); if (!r.ok) throw new Error("Falha ao baixar uma foto");
+  const b = await r.blob(); return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(b); }); }
+$("bPdf").onclick = async () => {
+  const ob = $("pObra").value, de = $("pDe").value, ate = $("pAte").value;
+  const L = rows.filter(r => (!ob || r.obra === ob) && (!de || r.data >= de) && (!ate || r.data <= ate)).sort((a, b) => a.data.localeCompare(b.data) || a.id - b.id);
+  if (!L.length) return alert("Nenhum lançamento nesse filtro.");
+  $("bPdf").disabled = true;
+  try {
+    const doc = new window.jspdf.jsPDF({unit:"mm", format:"a4"}), W = 210, H = 297, M = 15;
+    const sum = a => a.reduce((x, r) => x + (+r.valor || 0), 0), totalGeral = sum(rows);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("Prestação de Contas - Obras", M, 20);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+    doc.text(`Obra: ${ob || "todas"}   Período: ${de ? dbr(de) : "início"} a ${ate ? dbr(ate) : "hoje"}`, M, 27);
+    doc.text(`Total gasto (filtro): ${money(sum(L))}   Sem comprovante: ${money(sum(L.filter(r => !r.comprovante)))}   Lançamentos: ${L.length}`, M, 33);
+    doc.text(`Recebido em caixa (geral): ${money(recebido)}   Saldo geral: ${money(recebido - totalGeral)}`, M, 39);
+    let y = 48;
+    const cab = () => { doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text("Data", M, y); doc.text("Obra", M + 20, y); doc.text("Fornecedor / item", M + 50, y); doc.text("Categoria", M + 128, y); doc.text("Valor", W - M, y, {align:"right"}); doc.line(M, y + 1.5, W - M, y + 1.5); y += 6; doc.setFont("helvetica", "normal"); };
+    cab();
+    for (const r of L) {
+      const t = doc.splitTextToSize(`${r.fornecedor} - ${r.descricao}`, 76), h = Math.max(1, t.length) * 4.2 + 1.5;
+      if (y + h > H - M) { doc.addPage(); y = M + 5; cab(); }
+      doc.text(dbr(r.data), M, y); doc.text(doc.splitTextToSize(r.obra, 28)[0], M + 20, y); doc.text(t, M + 50, y);
+      doc.text(r.categoria, M + 128, y); doc.text(money(r.valor), W - M, y, {align:"right"}); y += h;
+    }
+    const P = []; L.forEach(r => fotos.filter(f => f.lancamento_id === r.id).forEach(f => P.push({r, f})));
+    const slot = (H - 2 * M) / 2;
+    for (let i = 0; i < P.length; i++) {
+      st(`Gerando PDF… foto ${i + 1} de ${P.length}`);
+      const {r, f} = P[i], k = i % 2, top = M + k * slot; if (k === 0) doc.addPage();
+      const u = urls[f.caminho]; if (!u) continue;
+      const d = await dataUrl(u), im = await imgInfo(d), mw = W - 2 * M, mh = slot - 24, s = Math.min(mw / im.width, mh / im.height), w = im.width * s, h = im.height * s;
+      doc.addImage(d, "JPEG", (W - w) / 2, top + 2, w, h);
+      doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text(doc.splitTextToSize(`${r.fornecedor} - ${r.descricao}`, mw), M, top + mh + 8);
+      doc.setFont("helvetica", "normal"); doc.text(`${dbr(r.data)} | ${r.obra} | ${r.categoria} | ${money(r.valor)}`, M, top + mh + 14);
+    }
+    doc.save(`prestacao-de-contas-${(ob || "todas").replace(/\s+/g, "-")}.pdf`); st("");
+  } catch (x) { fail(x); st(""); }
+  $("bPdf").disabled = false;
+};
 $("fd").value = new Date().toISOString().slice(0, 10);
 sb.auth.onAuthStateChange((_ev, session) => tela(session));
 sb.auth.getSession().then(({data}) => tela(data.session));
