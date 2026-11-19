@@ -42,6 +42,7 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 #pdf .row>*{flex:1;min-width:140px}
 .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
 .thumbs img,.prev img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--line)}
+.fw{position:relative;display:inline-block}.fw b{position:absolute;top:-6px;right:-6px;background:var(--bad);color:#fff;border-radius:50%;width:20px;height:20px;text-align:center;line-height:20px;font-size:12px;cursor:pointer}
 .mini{padding:3px 9px;font-size:12px;background:var(--sand);color:#2e342a}
 .prev{display:flex;gap:8px;flex-wrap:wrap}.prev span{position:relative}
 .prev b{position:absolute;top:-6px;right:-6px;background:var(--bad);color:#fff;border-radius:50%;width:20px;height:20px;text-align:center;line-height:20px;font-size:12px;cursor:pointer}
@@ -68,7 +69,7 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 <main id="app" class="hide">
 <header>
   <div><h1>Prestação de Contas | Obras</h1><p>Comprou → fotografou → registrou → enviou</p></div>
-  <button class="sec" id="sair">Sair</button>
+  <div style="text-align:right"><div id="ola" style="font-size:14px;margin-bottom:6px;font-weight:600"></div><button class="sec" id="sair">Sair</button></div>
 </header>
 <div id="err"></div><div id="st" style="color:var(--olive);font-size:13px"></div>
 <div class="cards">
@@ -114,7 +115,9 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 </main>
 
 <div id="modal" class="hide"><div class="box"><img id="mImg" alt="comprovante"><p id="mCap"></p>
-<div class="row" style="margin-top:10px"><button class="sec" id="mFecha">Fechar</button><button class="ghost edit" id="mDel">Excluir foto</button></div></div></div>
+<div class="row" style="margin-top:10px"><button class="sec" id="mFecha">Fechar</button><button class="sec edit" id="mCamT">📷 Trocar</button><button class="sec edit" id="mGalT">🖼️ Trocar</button><button class="edit" id="mDel" style="background:var(--bad)">Excluir foto</button></div></div></div>
+<input type="file" id="inCamT" accept="image/*" capture="environment" class="hide">
+<input type="file" id="inGalT" accept="image/*" class="hide">
 <input type="file" id="inCamF" accept="image/*" capture="environment" class="hide">
 <input type="file" id="inGalF" accept="image/*" multiple class="hide">
 <input type="file" id="inCamR" accept="image/*" capture="environment" class="hide">
@@ -124,6 +127,7 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 <script>
 /* ===== COLE AQUI os dados do seu projeto Supabase (Project Settings > API) ===== */
 const SUPABASE_URL = "https://aaajvihtdhpootilcgll.supabase.co";
+const NOME_EDITOR = "Irisvan", NOME_LEITOR = "Dona Clea";
 const LEITOR_EMAIL = "leitor@prestacao-obras.com"; // e-mail fixo do acesso só-senha
 const SUPABASE_KEY = "sb_publishable_Qc3dWQs2NjcrePWpmrGnTQ_Z2YxAduq";
 /* ================================================================================ */
@@ -173,7 +177,7 @@ function render() {
   $("msg").style.display = l.length ? "none" : ""; if (!l.length) $("msg").textContent = "Nenhum lançamento.";
   $("tL").innerHTML = l.map(r => `<tr><td>${esc(r.data.split("-").reverse().slice(0, 2).join("/"))}</td><td>${esc(r.obra)}</td>
   <td><b>${esc(r.fornecedor)}</b><br><span style="color:var(--mute)">${esc(r.descricao)}</span>
-  <div class="thumbs">${fotos.filter(f => f.lancamento_id === r.id).map(f => `<img src="${esc(urls[f.caminho] || "")}" data-foto="${f.id}" alt="comprovante">`).join("")}
+  <div class="thumbs">${fotos.filter(f => f.lancamento_id === r.id).map(f => `<span class="fw"><img src="${esc(urls[f.caminho] || "")}" data-foto="${f.id}" alt="comprovante"><b class="edit" data-del="${f.id}" title="Excluir foto">✕</b></span>`).join("")}
   <button class="mini edit" data-t="cam" data-id="${r.id}">📷</button><button class="mini edit" data-t="gal" data-id="${r.id}">🖼️</button></div></td><td>${esc(r.categoria)}</td><td class="r">${brl(r.valor)}</td>
   <td><button class="tag ${r.comprovante ? "" : "no"}" data-t="comprovante" data-id="${r.id}">${r.comprovante ? "Sim" : "Não"}</button></td>
   <td><button class="tag ${r.conferido ? "ok" : "no"}" data-t="conferido" data-id="${r.id}">${r.conferido ? "OK" : "Pendente"}</button></td>
@@ -182,6 +186,9 @@ function render() {
 
 $("flt").onchange = render;
 $("tL").onclick = async e => {
+  const xd = e.target.closest("b[data-del]");
+  if (xd) { const f = fotos.find(x => x.id === +xd.dataset.del); if (leitor || !f || !confirm("Excluir esta foto?")) return;
+    try { await apagarFoto(f); load(); } catch (x) { fail(x); } return; }
   const im = e.target.closest("img[data-foto]"); if (im) return abrir(+im.dataset.foto);
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.t === "cam" || b.dataset.t === "gal") { alvo = +b.dataset.id; return $(b.dataset.t === "cam" ? "inCamR" : "inGalR").click(); }
@@ -237,12 +244,19 @@ function abrir(id) {
 }
 const fechar = () => { $("modal").classList.add("hide"); fotoAberta = null; };
 $("mFecha").onclick = fechar; $("modal").onclick = e => { if (e.target.id === "modal") fechar(); };
+async function apagarFoto(f) {
+  const rm = await sb.storage.from(BUCKET).remove([f.caminho]); if (rm.error) throw rm.error;
+  const d = await sb.from("comprovantes").delete().eq("id", f.id); if (d.error) throw d.error;
+}
 $("mDel").onclick = async () => {
   if (leitor || !fotoAberta || !confirm("Excluir esta foto?")) return;
-  const rm = await sb.storage.from(BUCKET).remove([fotoAberta.caminho]); if (rm.error) return fail(rm.error);
-  const d = await sb.from("comprovantes").delete().eq("id", fotoAberta.id); if (d.error) return fail(d.error);
-  fechar(); load();
+  try { await apagarFoto(fotoAberta); fechar(); load(); } catch (x) { fail(x); }
 };
+$("mCamT").onclick = () => $("inCamT").click(); $("mGalT").onclick = () => $("inGalT").click();
+["inCamT", "inGalT"].forEach(id => $(id).onchange = async e => {
+  const f = e.target.files[0], velha = fotoAberta; e.target.value = ""; if (leitor || !f || !velha) return;
+  try { st("Trocando foto…"); await enviar(velha.lancamento_id, [f]); await apagarFoto(velha); fechar(); st(""); await load(); } catch (x) { fail(x); st(""); }
+});
 $("bRec").onclick = async () => {
   const v = prompt("Dinheiro recebido / adiantamentos (R$):", recebido); if (v === null) return;
   const n = parseFloat(String(v).replace(",", ".")); if (isNaN(n)) return;
@@ -263,6 +277,7 @@ $("sair").onclick = () => sb.auth.signOut();
 function tela(session) {
   leitor = !!session && (session.user.email || "").toLowerCase() === LEITOR_EMAIL;
   document.body.classList.toggle("leitor", leitor);
+  $("ola").textContent = session ? "Olá, " + (leitor ? NOME_LEITOR : NOME_EDITOR) : "";
   $("login").classList.toggle("hide", !!session);
   $("app").classList.toggle("hide", !session);
   if (session) load();
