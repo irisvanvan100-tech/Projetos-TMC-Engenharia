@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Folha de Ponto</title>
+<style>
+:root{--bege:#E3C4A8;--oliva:#7A8B6F;--fundo:#F3EFE6;--tinta:#2f352b;--borda:#d8cfbf;--ok:#cfe0c3;--meio:#f3e2a9;--falta:#efc2b8;--dom:#ebe4d3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:15px/1.4 "Segoe UI",system-ui,sans-serif}
+button,input,select{font:inherit}
+.oculto{display:none!important}
+button{cursor:pointer;border:1px solid var(--oliva);background:var(--oliva);color:#fff;border-radius:6px;padding:8px 14px}
+button.sec{background:transparent;color:var(--oliva)}
+button.perigo{background:transparent;color:#a3392a;border-color:#a3392a}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
+input,select{border:1px solid var(--borda);border-radius:6px;padding:8px;background:#fff;width:100%}
+label{display:block;margin:10px 0 4px;font-weight:600}
+.erro{color:#a3392a;margin:10px 0 0;min-height:1em}
+header{background:var(--oliva);color:#fff;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{margin:0;font-size:18px;flex:1}
+header .quem{opacity:.9}
+header button{background:#fff;color:var(--oliva);border-color:#fff}
+.barra{display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;align-items:center}
+.barra select{max-width:340px}
+main{padding:0 20px 40px}
+.info{background:#fff;border:1px solid var(--borda);border-left:6px solid var(--bege);border-radius:8px;padding:12px 16px;margin-bottom:16px}
+.info strong{font-size:17px}
+.secao{margin-bottom:24px}
+.secao h2{margin:0 0 8px;font-size:17px;display:flex;gap:12px;align-items:center}
+.rolagem{overflow-x:auto;background:#fff;border:1px solid var(--borda);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{border:1px solid var(--borda);padding:4px;text-align:center;white-space:nowrap}
+thead th{background:var(--bege);font-weight:600;font-size:12px}
+th.dom{background:#d6b999}
+td.dom{background:var(--dom)}
+td:first-child,th:first-child{position:sticky;left:0;background:#fff;text-align:left;min-width:170px;z-index:1}
+thead th:first-child{background:var(--bege)}
+td input{text-align:center;padding:5px 2px;border:0;background:transparent;width:46px}
+td.nome input{text-align:left;width:150px;padding:5px}
+td.v1{background:var(--ok)}td.v05{background:var(--meio)}td.v0{background:var(--falta)}
+td.valor input{width:84px}
+.tot{font-weight:700}
+.receber{font-weight:700;color:#3c5a2e}
+tfoot td{background:var(--fundo);font-weight:700}
+.resumo{display:flex;gap:12px;flex-wrap:wrap}
+.resumo div{flex:1;min-width:200px;background:#fff;border:1px solid var(--borda);border-radius:8px;padding:12px 16px}
+.resumo b{display:block;font-size:20px;color:#3c5a2e}
+.vazio{padding:28px;text-align:center}
+dialog{border:1px solid var(--borda);border-radius:10px;padding:22px;width:min(420px,92vw)}
+dialog::backdrop{background:rgba(47,53,43,.45)}
+dialog h3{margin:0 0 6px}
+.acoes{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.chk{display:flex;gap:8px;align-items:center;font-weight:400}.chk input{width:auto}
+.cfg{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.cfg label{margin:0;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.cfg input{width:150px}
+.nota{margin:8px 0 0;font-size:13px;opacity:.85}
+header .marca{height:34px;background:#fff;border-radius:6px;padding:2px 8px}
+header .btnlink{background:#fff;color:var(--oliva);border:1px solid #fff;border-radius:6px;padding:8px 14px;text-decoration:none}
+@media(max-width:600px){.barra select{max-width:none}}
+</style>
+</head>
+<body>
+<p id="carregando" style="padding:24px">Carregando…</p>
+<div id="sistema" class="oculto">
+  <header>
+    <img class="marca" src="logo.jpg" alt="TMC Engenharia">
+    <h1>Folha de Ponto</h1>
+    <span class="quem" id="quem"></span>
+    <a class="btnlink oculto" id="linkInicio" href="index.html">Início</a>
+    <button id="btnSair">Sair</button>
+  </header>
+  <div class="barra">
+    <select id="selQuinzena" aria-label="Quinzena"></select>
+    <button id="btnNova" class="editor">Nova quinzena</button>
+    <button id="btnEditarQ" class="sec editor">Editar quinzena</button>
+    <button id="btnExcluirQ" class="perigo editor">Excluir quinzena</button>
+    <button id="btnPDF">Gerar PDF</button>
+  </div>
+  <main id="conteudo"></main>
+</div>
+
+<dialog id="dlgQ">
+  <h3 id="dlgQTitulo">Nova quinzena</h3>
+  <label for="qObra">Obra</label><input id="qObra" placeholder="Ex.: Jabuti Garden Fase 2">
+  <label for="qIni">Primeiro dia</label><input id="qIni" type="date">
+  <label for="qFim">Último dia</label><input id="qFim" type="date">
+  <label class="chk" id="boxCopiar"><input id="qCopiar" type="checkbox" checked> Copiar equipe da quinzena anterior</label>
+  <p class="erro" id="erroQ"></p>
+  <div class="acoes"><button class="sec" data-fechar="dlgQ">Cancelar</button><button id="btnSalvarQ">Salvar</button></div>
+</dialog>
+
+<dialog id="dlgF">
+  <h3 id="dlgFTitulo">Adicionar funcionário</h3>
+  <label for="fNome">Nome</label><input id="fNome">
+  <label for="fValor">Valor da diária (R$)</label><input id="fValor" type="number" min="0" step="0.01">
+  <p class="erro" id="erroF"></p>
+  <div class="acoes"><button class="sec" data-fechar="dlgF">Cancelar</button><button id="btnSalvarF">Adicionar</button></div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+// Camada de dados (Supabase). A tela só conversa com o banco por este objeto.
+const ok = r => { if (r.error) throw r.error; return r.data; };
+const DB = {
+  quinzenas: () => sb.from('quinzenas').select('*').order('data_inicio', { ascending: false }).then(ok),
+  criarQuinzena: q => sb.from('quinzenas').insert(q).select().single().then(ok),
+  editarQuinzena: (id, q) => sb.from('quinzenas').update(q).eq('id', id).then(ok),
+  excluirQuinzena: id => sb.from('quinzenas').delete().eq('id', id).then(ok),
+  funcionarios: qid => sb.from('funcionarios_quinzena').select('*').eq('quinzena_id', qid).order('criado_em').order('nome').then(ok),
+  addFuncionarios: f => sb.from('funcionarios_quinzena').insert(f).select().then(ok),
+  editarFuncionario: (id, f) => sb.from('funcionarios_quinzena').update(f).eq('id', id).then(ok),
+  excluirFuncionario: id => sb.from('funcionarios_quinzena').delete().eq('id', id).then(ok),
+  pontos: ids => ids.length ? sb.from('pontos').select('*').in('funcionario_id', ids).then(ok) : Promise.resolve([]),
+  salvarPonto: (fid, data, valor) => valor === null
+    ? sb.from('pontos').delete().eq('funcionario_id', fid).eq('data', data).then(ok)
+    : sb.from('pontos').upsert({ funcionario_id: fid, data, valor }, { onConflict: 'funcionario_id,data' }).then(ok)
+};
+
+// Interface e regras da folha de ponto
+const $ = s => document.querySelector(s);
+const brl = n => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtData = d => d.split('-').reverse().join('/');
+const SEM = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+const diaSemana = d => SEM[new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8)).getDay()];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const totalFunc = (id, pontos) => Object.keys(pontos).filter(k => k.startsWith(id + '|')).reduce((s, k) => s + Number(pontos[k]), 0);
+
+let perfil, quinzenas = [], atual = null, funcs = [], pontos = {}, dias = [], editor = false, modoQ = 'nova', funcaoNova = 'servente';
+
+function listaDias(ini, fim) {
+  const r = [], d = new Date(+ini.slice(0, 4), +ini.slice(5, 7) - 1, +ini.slice(8));
+  const f = new Date(+fim.slice(0, 4), +fim.slice(5, 7) - 1, +fim.slice(8));
+  while (d <= f && r.length < 32) { r.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')); d.setDate(d.getDate() + 1); }
+  return r;
+}
+const msg = e => (e && e.message) || 'Erro inesperado.';
+
+async function iniciar() {
+  const p = await TMC.exigirAcesso('folha');   // sem login/permissão volta para a página central
+  perfil = p; editor = p.folha === 'editar';
+  $('#carregando').remove(); $('#sistema').classList.remove('oculto');
+  $('#quem').textContent = p.nome + ' (' + (editor ? 'editor' : 'somente visualização') + ')';
+  document.querySelectorAll('.editor').forEach(b => b.classList.toggle('oculto', !editor));
+  if (p.prestacao !== 'nenhum') $('#linkInicio').classList.remove('oculto');
+  await carregarQuinzenas();
+}
+
+async function carregarQuinzenas(selecionar) {
+  quinzenas = await DB.quinzenas();
+  const sel = $('#selQuinzena');
+  sel.innerHTML = quinzenas.map(q => `<option value="${q.id}">${esc(q.obra)} — ${fmtData(q.data_inicio)} a ${fmtData(q.data_fim)}</option>`).join('');
+  if (!quinzenas.length) {
+    atual = null;
+    ['#btnEditarQ', '#btnExcluirQ', '#btnPDF'].forEach(s => $(s).classList.add('oculto'));
+    $('#conteudo').innerHTML = `<div class="vazio">Nenhuma quinzena cadastrada.${editor ? ' Clique em “Nova quinzena” para começar.' : ''}</div>`;
+    return;
+  }
+  $('#btnPDF').classList.remove('oculto');
+  ['#btnEditarQ', '#btnExcluirQ'].forEach(s => $(s).classList.toggle('oculto', !editor));
+  sel.value = selecionar || (atual && quinzenas.some(q => q.id === atual.id) ? atual.id : quinzenas[0].id);
+  await abrirQuinzena(sel.value);
+}
+
+async function abrirQuinzena(id) {
+  atual = quinzenas.find(q => q.id === id);
+  dias = listaDias(atual.data_inicio, atual.data_fim);
+  funcs = await DB.funcionarios(id);
+  pontos = {};
+  (await DB.pontos(funcs.map(f => f.id))).forEach(p => pontos[p.funcionario_id + '|' + p.data] = p.valor);
+  desenhar();
+}
+
+function tabela(funcao, titulo) {
+  const lista = funcs.filter(f => f.funcao === funcao);
+  const cab = dias.map(d => `<th class="${diaSemana(d) === 'DOM' ? 'dom' : ''}">${diaSemana(d)}<br>${d.slice(8)}/${d.slice(5, 7)}</th>`).join('');
+  const linhas = lista.map(f => {
+    const cel = dias.map(d => {
+      const v = pontos[f.id + '|' + d], cls = v == null ? '' : v == 1 ? 'v1' : v == 0.5 ? 'v05' : 'v0';
+      const txt = v == null ? '' : String(v).replace('.', ',');
+      return `<td class="${cls} ${diaSemana(d) === 'DOM' ? 'dom' : ''}" data-f="${f.id}" data-d="${d}">${editor ? `<input value="${txt}" inputmode="decimal" aria-label="${esc(f.nome)} ${d}">` : txt}</td>`;
+    }).join('');
+    const t = totalFunc(f.id, pontos);
+    return `<tr data-f="${f.id}"><td class="nome">${editor ? `<input value="${esc(f.nome)}" data-campo="nome">` : esc(f.nome)}</td>${cel}
+      <td class="tot">${String(t).replace('.', ',')}</td>
+      <td class="valor">${editor ? `<input type="number" min="0" step="0.01" value="${f.valor_diaria}" data-campo="valor">` : brl(f.valor_diaria)}</td>
+      <td class="receber">${brl(t * f.valor_diaria)}</td>
+      ${editor ? `<td><button class="perigo" data-del="${f.id}" title="Excluir funcionário">Excluir</button></td>` : ''}</tr>`;
+  }).join('') || `<tr><td colspan="${dias.length + 5}" class="vazio">Nenhum funcionário nesta função.</td></tr>`;
+  const soma = lista.reduce((s, f) => s + totalFunc(f.id, pontos) * f.valor_diaria, 0);
+  return `<section class="secao"><h2>${titulo} ${editor ? `<button data-add="${funcao}">Adicionar funcionário</button>` : ''}</h2>
+    <div class="rolagem"><table><thead><tr><th>Nome</th>${cab}<th>TOTAL</th><th>VALOR DIÁRIA</th><th>A RECEBER</th>${editor ? '<th></th>' : ''}</tr></thead>
+    <tbody>${linhas}</tbody><tfoot><tr><td colspan="${dias.length + 3}" style="text-align:right">Total ${titulo.toLowerCase()}</td><td>${brl(soma)}</td>${editor ? '<td></td>' : ''}</tr></tfoot></table></div></section>`;
+}
+
+// Alimentação: almoço e pães conforme os funcionários presentes em cada dia
+function refeicoes() {
+  const c = { pa: atual.preco_almoco ?? 10, pp: atual.preco_pao ?? 0.7, ppa: atual.paes_por_almoco ?? 2 };
+  const aj = atual.ajuste_refeicoes || {};
+  const linhas = dias.map(d => {
+    const pres = f => funcs.filter(x => x.funcao === f && Number(pontos[x.id + '|' + d] || 0) > 0).length;
+    const s = pres('servente'), p = pres('pedreiro'), auto = s + p;
+    const alm = aj[d] ?? auto, paes = alm * c.ppa;
+    return { d, s, p, auto, alm, paes, custo: alm * c.pa + paes * c.pp, ajustado: aj[d] != null };
+  });
+  const soma = k => linhas.reduce((t, l) => t + l[k], 0);
+  return { c, linhas, s: soma('s'), p: soma('p'), alm: soma('alm'), paes: soma('paes'), custo: soma('custo') };
+}
+
+function redesenhar() {
+  const y = window.scrollY, rol = [...document.querySelectorAll('.rolagem')].map(r => r.scrollLeft);
+  desenhar(); window.scrollTo(0, y); document.querySelectorAll('.rolagem').forEach((r, i) => r.scrollLeft = rol[i]);
+}
+
+function secaoRefeicoes() {
+  const r = refeicoes(), c = r.c;
+  const campo = (k, rot, v, step) => `<label>${rot}${editor ? `<input type="number" min="0" step="${step}" value="${v}" data-cfg="${k}">` : `<b>${k === 'paes_por_almoco' ? v : brl(v)}</b>`}</label>`;
+  const dom = d => diaSemana(d) === 'DOM' ? 'dom' : '';
+  const cab = dias.map(d => `<th class="${dom(d)}">${diaSemana(d)}<br>${d.slice(8)}/${d.slice(5, 7)}</th>`).join('');
+  const linha = (rot, fn, tot) => `<tr><td>${rot}</td>${r.linhas.map(l => `<td class="${dom(l.d)}">${fn(l)}</td>`).join('')}<td class="tot">${tot}</td></tr>`;
+  const almoco = r.linhas.map(l => `<td class="${l.ajustado ? 'v05' : dom(l.d)}">${editor ? `<input value="${l.alm}" inputmode="numeric" data-aj="${l.d}" aria-label="Almoços ${l.d}">` : l.alm}</td>`).join('');
+  return `<section class="secao"><h2>Alimentação (almoço e pães)</h2>
+    <div class="cfg">${campo('preco_almoco', 'Preço do almoço (R$)', c.pa, '0.01')}${campo('preco_pao', 'Preço do pão (R$)', c.pp, '0.01')}${campo('paes_por_almoco', 'Pães por almoço', c.ppa, '1')}</div>
+    <div class="rolagem"><table><thead><tr><th>Alimentação</th>${cab}<th>TOTAL</th></tr></thead><tbody>
+      ${linha('Serventes presentes', l => l.s, r.s)}
+      ${linha('Pedreiros presentes', l => l.p, r.p)}
+      <tr><td>Almoços</td>${almoco}<td class="tot">${r.alm}</td></tr>
+      ${linha('Pães', l => l.paes, r.paes)}
+      ${linha('Custo do dia', l => brl(l.custo), brl(r.custo))}
+    </tbody></table></div>
+    ${editor ? '<p class="nota">Os almoços são contados automaticamente pelos funcionários presentes no dia (1 ou 0,5). Para mudar um dia, digite outra quantidade (a célula fica amarela); apague para voltar ao automático.</p>' : ''}</section>`;
+}
+
+function desenhar() {
+  const tot = f => funcs.filter(x => x.funcao === f).reduce((s, x) => s + totalFunc(x.id, pontos) * x.valor_diaria, 0);
+  $('#conteudo').innerHTML = `<div class="info"><strong>${esc(atual.obra)}</strong><br>Quinzena de ${fmtData(atual.data_inicio)} a ${fmtData(atual.data_fim)}${editor ? '<br>Use 1 para presença, 0 para ausência e 0,5 para meia diária.' : ''}</div>
+    ${tabela('servente', 'Serventes')}${tabela('pedreiro', 'Pedreiros')}${secaoRefeicoes()}
+    <div class="resumo"><div>Serventes<b>${brl(tot('servente'))}</b></div><div>Pedreiros<b>${brl(tot('pedreiro'))}</b></div><div>Alimentação<b>${brl(refeicoes().custo)}</b></div><div>Total geral (mão de obra + alimentação)<b>${brl(tot('servente') + tot('pedreiro') + refeicoes().custo)}</b></div></div>`;
+}
+
+// Lançamento de presença: 1, 0 ou 0,5
+async function lancar(input) {
+  const td = input.closest('td'), fid = td.dataset.f, d = td.dataset.d, bruto = input.value.trim().replace(',', '.');
+  const antigo = pontos[fid + '|' + d];
+  const v = bruto === '' ? null : Number(bruto);
+  if (v !== null && ![0, 0.5, 1].includes(v)) { input.value = antigo == null ? '' : String(antigo).replace('.', ','); alert('Use apenas 1, 0 ou 0,5.'); return; }
+  try {
+    await DB.salvarPonto(fid, d, v);
+    if (v === null) delete pontos[fid + '|' + d]; else pontos[fid + '|' + d] = v;
+    const y = window.scrollY, rol = [...document.querySelectorAll('.rolagem')].map(r => r.scrollLeft);
+    desenhar(); window.scrollTo(0, y); document.querySelectorAll('.rolagem').forEach((r, i) => r.scrollLeft = rol[i]);
+  } catch (e) { alert('Não foi possível salvar: ' + msg(e)); }
+}
+
+function abrirQ(modo) {
+  modoQ = modo; $('#erroQ').textContent = '';
+  $('#dlgQTitulo').textContent = modo === 'nova' ? 'Nova quinzena' : 'Editar quinzena';
+  $('#boxCopiar').classList.toggle('oculto', modo !== 'nova' || !quinzenas.length);
+  $('#qObra').value = atual ? atual.obra : '';
+  $('#qIni').value = modo === 'editar' ? atual.data_inicio : '';
+  $('#qFim').value = modo === 'editar' ? atual.data_fim : '';
+  $('#dlgQ').showModal();
+}
+
+async function salvarQ() {
+  const q = { obra: $('#qObra').value.trim(), data_inicio: $('#qIni').value, data_fim: $('#qFim').value };
+  if (!q.obra || !q.data_inicio || !q.data_fim) { $('#erroQ').textContent = 'Preencha a obra e as duas datas.'; return; }
+  if (q.data_fim < q.data_inicio) { $('#erroQ').textContent = 'O último dia deve ser depois do primeiro.'; return; }
+  if (listaDias(q.data_inicio, q.data_fim).length > 31) { $('#erroQ').textContent = 'O período pode ter no máximo 31 dias.'; return; }
+  try {
+    let id;
+    if (modoQ === 'editar') { await DB.editarQuinzena(atual.id, q); id = atual.id; }
+    else {
+      if ($('#qCopiar').checked && atual) Object.assign(q, { preco_almoco: atual.preco_almoco ?? 10, preco_pao: atual.preco_pao ?? 0.7, paes_por_almoco: atual.paes_por_almoco ?? 2 });
+      const nova = await DB.criarQuinzena(q); id = nova.id;
+      if ($('#qCopiar').checked && atual) {
+        const base = await DB.funcionarios(atual.id);
+        if (base.length) await DB.addFuncionarios(base.map(f => ({ quinzena_id: id, nome: f.nome, funcao: f.funcao, valor_diaria: f.valor_diaria })));
+      }
+    }
+    $('#dlgQ').close(); await carregarQuinzenas(id);
+  } catch (e) { $('#erroQ').textContent = msg(e); }
+}
+
+async function salvarF() {
+  const nome = $('#fNome').value.trim(), valor = parseFloat($('#fValor').value);
+  if (!nome || isNaN(valor) || valor < 0) { $('#erroF').textContent = 'Informe o nome e o valor da diária.'; return; }
+  try {
+    await DB.addFuncionarios([{ quinzena_id: atual.id, nome, funcao: funcaoNova, valor_diaria: valor }]);
+    $('#dlgF').close(); await abrirQuinzena(atual.id);
+  } catch (e) { $('#erroF').textContent = msg(e); }
+}
+
+// Eventos
+$('#btnSair').onclick = () => TMC.sair();
+$('#selQuinzena').onchange = e => abrirQuinzena(e.target.value);
+$('#btnNova').onclick = () => abrirQ('nova');
+$('#btnEditarQ').onclick = () => abrirQ('editar');
+$('#btnSalvarQ').onclick = salvarQ;
+$('#btnSalvarF').onclick = salvarF;
+$('#btnPDF').onclick = () => gerarPDF(atual, dias, funcs, pontos);
+$('#btnExcluirQ').onclick = async () => {
+  if (!confirm('Excluir esta quinzena com todos os funcionários e pontos? Isso não pode ser desfeito.')) return;
+  try { await DB.excluirQuinzena(atual.id); atual = null; await carregarQuinzenas(); } catch (e) { alert(msg(e)); }
+};
+document.querySelectorAll('[data-fechar]').forEach(b => b.onclick = () => $('#' + b.dataset.fechar).close());
+$('#conteudo').addEventListener('change', async e => {
+  const i = e.target;
+  if (i.dataset.cfg) {
+    const v = parseFloat(String(i.value).replace(',', '.'));
+    if (isNaN(v) || v < 0) { alert('Informe um valor válido.'); return redesenhar(); }
+    try { await DB.editarQuinzena(atual.id, { [i.dataset.cfg]: v }); atual[i.dataset.cfg] = v; redesenhar(); } catch (err) { alert('Não foi possível salvar: ' + msg(err)); }
+    return;
+  }
+  if (i.dataset.aj) {
+    const d = i.dataset.aj, bruto = i.value.trim(), aj = { ...(atual.ajuste_refeicoes || {}) };
+    if (bruto === '') delete aj[d];
+    else { const n = Number(bruto.replace(',', '.')); if (!Number.isInteger(n) || n < 0) { alert('Use um número inteiro (0 ou mais).'); return redesenhar(); } aj[d] = n; }
+    try { await DB.editarQuinzena(atual.id, { ajuste_refeicoes: aj }); atual.ajuste_refeicoes = aj; redesenhar(); } catch (err) { alert('Não foi possível salvar: ' + msg(err)); }
+    return;
+  }
+  if (i.closest('td[data-d]')) return lancar(i);
+  const tr = i.closest('tr[data-f]'); if (!tr || !i.dataset.campo) return;
+  try {
+    if (i.dataset.campo === 'nome') { if (!i.value.trim()) return abrirQuinzena(atual.id); await DB.editarFuncionario(tr.dataset.f, { nome: i.value.trim() }); }
+    else { await DB.editarFuncionario(tr.dataset.f, { valor_diaria: Math.max(0, parseFloat(i.value) || 0) }); }
+    await abrirQuinzena(atual.id);
+  } catch (err) { alert('Não foi possível salvar: ' + msg(err)); }
+});
+$('#conteudo').addEventListener('click', async e => {
+  const add = e.target.dataset.add, del = e.target.dataset.del;
+  if (add) { funcaoNova = add; $('#dlgFTitulo').textContent = 'Adicionar ' + (add === 'servente' ? 'servente' : 'pedreiro'); $('#fNome').value = ''; $('#fValor').value = ''; $('#erroF').textContent = ''; $('#dlgF').showModal(); }
+  if (del) {
+    const f = funcs.find(x => x.id === del);
+    if (!confirm('Excluir ' + f.nome + ' e todos os pontos dele nesta quinzena?')) return;
+    try { await DB.excluirFuncionario(del); await abrirQuinzena(atual.id); } catch (err) { alert(msg(err)); }
+  }
+});
+iniciar().catch(e => document.body.insertAdjacentHTML('afterbegin', '<p class="erro" style="padding:20px">Erro ao carregar: ' + esc(msg(e)) + '</p>'));
+
+// Geração do PDF (jsPDF + autoTable)
+function gerarPDF(q, dias, funcs, pontos) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  doc.setFontSize(15); doc.text('PLANILHA DE PONTOS', 148, 14, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text('OBRA: ' + q.obra, 10, 22);
+  doc.text('QUINZENA: ' + fmtData(q.data_inicio) + ' a ' + fmtData(q.data_fim), 10, 27);
+  let y = 32, geral = 0;
+  [['servente', 'SERVENTES'], ['pedreiro', 'PEDREIROS']].forEach(([f, titulo]) => {
+    const lista = funcs.filter(x => x.funcao === f);
+    let soma = 0;
+    const corpo = lista.map(x => {
+      const t = totalFunc(x.id, pontos), pagar = t * x.valor_diaria; soma += pagar;
+      return [x.nome, ...dias.map(d => { const v = pontos[x.id + '|' + d]; return v == null ? '' : String(v).replace('.', ','); }),
+        String(t).replace('.', ','), brl(x.valor_diaria), brl(pagar)];
+    });
+    corpo.push([{ content: 'TOTAL ' + titulo, colSpan: dias.length + 3, styles: { halign: 'right', fontStyle: 'bold' } }, { content: brl(soma), styles: { fontStyle: 'bold' } }]);
+    geral += soma;
+    doc.autoTable({
+      startY: y, margin: { left: 10, right: 10 }, styles: { fontSize: 7, cellPadding: 1.2, halign: 'center' },
+      head: [[titulo, ...dias.map(d => diaSemana(d) + '\n' + d.slice(8) + '/' + d.slice(5, 7)), 'TOTAL', 'VALOR', 'A RECEBER']],
+      body: corpo, headStyles: { fillColor: [122, 139, 111] }, columnStyles: { 0: { halign: 'left', cellWidth: 38 } }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  });
+  const r = refeicoes();
+  doc.autoTable({
+    startY: y, margin: { left: 10, right: 10 }, styles: { fontSize: 7, cellPadding: 1.2, halign: 'center' },
+    head: [['ALIMENTAÇÃO', ...dias.map(d => diaSemana(d) + '\n' + d.slice(8) + '/' + d.slice(5, 7)), 'TOTAL']],
+    body: [
+      ['Serventes presentes', ...r.linhas.map(l => l.s), r.s],
+      ['Pedreiros presentes', ...r.linhas.map(l => l.p), r.p],
+      ['Almoços', ...r.linhas.map(l => l.alm), r.alm],
+      ['Pães', ...r.linhas.map(l => l.paes), r.paes],
+      ['Custo do dia', ...r.linhas.map(l => brl(l.custo)), brl(r.custo)]
+    ],
+    headStyles: { fillColor: [122, 139, 111] }, columnStyles: { 0: { halign: 'left', cellWidth: 38 } }
+  });
+  y = doc.lastAutoTable.finalY + 6;
+  if (y > 170) { doc.addPage(); y = 15; }
+  doc.setFontSize(8); doc.setFont(undefined, 'normal');
+  doc.text('Almoço: ' + brl(r.c.pa) + '  |  Pão: ' + brl(r.c.pp) + '  |  Pães por almoço: ' + String(r.c.ppa).replace('.', ','), 10, y);
+  doc.setFontSize(10); doc.setFont(undefined, 'bold');
+  doc.text('TOTAL MÃO DE OBRA: ' + brl(geral), 287, y, { align: 'right' });
+  doc.text('TOTAL ALIMENTAÇÃO: ' + brl(r.custo), 287, y + 6, { align: 'right' });
+  doc.setFontSize(12);
+  doc.text('TOTAL GERAL: ' + brl(geral + r.custo), 287, y + 13, { align: 'right' });
+  doc.setFont(undefined, 'normal'); doc.setFontSize(8);
+  doc.text('Gerado em ' + new Date().toLocaleString('pt-BR'), 10, 203);
+  doc.save('folha-ponto_' + q.data_inicio + '_a_' + q.data_fim + '.pdf');
+}
+</script>
+</body>
+</html>
