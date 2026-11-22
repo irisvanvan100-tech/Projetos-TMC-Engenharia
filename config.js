@@ -11,12 +11,12 @@ const sb = supabase.createClient(TMC_CONFIG.SUPABASE_URL, TMC_CONFIG.SUPABASE_KE
 const TMC = {
   // Módulos do sistema: chave = coluna na tabela "perfis"
   MODULOS: {
+    folha:      { pagina: 'folha_ponto.html',      titulo: 'Folha de Ponto' },
     cronograma: { pagina: 'cronograma.html',       titulo: 'Cronograma' },
     estoque:    { pagina: 'estoque.html',          titulo: 'Estoque' },
+    retrabalhos:{ pagina: 'retrabalhos.html',      titulo: 'Retrabalhos' },
     vistoria:   { pagina: 'vistoria.html',         titulo: 'Vistoria' },
     entrega:    { pagina: 'entrega_chaves.html',   titulo: 'Entrega de Chaves' },
-    retrabalhos:{ pagina: 'retrabalhos.html',      titulo: 'Retrabalhos' },
-    folha:      { pagina: 'folha_ponto.html',      titulo: 'Folha de Ponto' },
     prestacao:  { pagina: 'prestacao_contas.html', titulo: 'Prestação de Contas' }
   },
   async sessao() { return (await sb.auth.getSession()).data.session; },
