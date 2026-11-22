@@ -14,8 +14,8 @@ const TMC = {
     folha:      { pagina: 'folha_ponto.html',      titulo: 'Folha de Ponto' },
     cronograma: { pagina: 'cronograma.html',       titulo: 'Cronograma' },
     estoque:    { pagina: 'estoque.html',          titulo: 'Estoque' },
-    retrabalhos:{ pagina: 'retrabalhos.html',      titulo: 'Retrabalhos' },
     vistoria:   { pagina: 'vistoria.html',         titulo: 'Vistoria' },
+    retrabalhos:{ pagina: 'retrabalhos.html',      titulo: 'Retrabalhos' },
     entrega:    { pagina: 'entrega_chaves.html',   titulo: 'Entrega de Chaves' },
     prestacao:  { pagina: 'prestacao_contas.html', titulo: 'Prestação de Contas' }
   },
