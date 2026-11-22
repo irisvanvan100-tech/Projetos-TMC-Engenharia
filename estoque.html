@@ -5,17 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#7A8B6F">
 <title>Estoque | TMC Engenharia</title>
+<link rel="stylesheet" href="estilo.css">
 <style>
-:root{--bege:#E3C4A8;--oliva:#7A8B6F;--olivaesc:#5d6d53;--fundo:#F3EFE6;--tinta:#2f352b;--borda:#d8cfbf;--erro:#a3392a}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--fundo);color:var(--tinta);font:15px/1.4 "Segoe UI",system-ui,sans-serif}
-button,input,select{font:inherit}
-.oculto{display:none!important}
-header{background:var(--oliva);color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
-header h1{margin:0;font-size:18px;flex:1}
-header .quem{opacity:.9;font-size:13px}
-header .marca{height:32px;background:#fff;border-radius:6px;padding:2px 6px}
-header a,header button{background:#fff;color:var(--oliva);border:1px solid #fff;border-radius:6px;padding:6px 12px;text-decoration:none;cursor:pointer}
+:root{--olivaesc:#5d6d53}
 .abas{display:flex;gap:6px;padding:10px 12px 0;max-width:900px;margin:auto}
 .abas button{flex:1;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:10px;padding:9px 6px;cursor:pointer}
 .abas button.on{background:var(--oliva);color:#fff;font-weight:600}
@@ -26,41 +18,60 @@ select,input{padding:10px;border-radius:10px;border:1px solid var(--borda);width
 .btn.sec{background:var(--bege);color:var(--tinta)}
 .btn:disabled{opacity:.6}
 .pq{border:1px solid var(--borda);background:#fff;border-radius:8px;padding:5px 9px;cursor:pointer}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.chips{display:flex;gap:6px;overflow:auto;padding-bottom:4px;margin:6px 0}.chips button{white-space:nowrap;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:20px;padding:7px 12px;cursor:pointer}.chips button.on{background:var(--oliva);color:#fff}
-table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:6px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.chips{display:flex;gap:6px;overflow:auto;padding-bottom:4px;margin:6px 0}
+.chips button{white-space:nowrap;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:20px;padding:7px 12px;cursor:pointer}
+.chips button.on{background:var(--oliva);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:6px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
 td.n,th.n{text-align:right;white-space:nowrap}
 .neg{color:var(--erro);font-weight:700}
 .muted{color:#777;font-size:12px}
 label.muted{display:block;margin-top:6px}
-.resumo{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.resumo div{flex:1;min-width:140px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:10px 12px}.resumo b{display:block;font-size:20px;color:var(--olivaesc)}
-.seg{display:flex;gap:6px;margin:6px 0 8px}.seg button{flex:1;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:8px;padding:7px;cursor:pointer}.seg button.on{background:var(--oliva);color:#fff;font-weight:600}
+.resumo{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.resumo div{flex:1;min-width:140px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:10px 12px}
+.resumo b{display:block;font-size:20px;color:var(--olivaesc)}
+.seg{display:flex;gap:6px;margin:6px 0 8px}
+.seg button{flex:1;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:8px;padding:7px;cursor:pointer}
+.seg button.on{background:var(--oliva);color:#fff;font-weight:600}
 textarea{width:100%;min-height:140px;padding:10px;border-radius:10px;border:1px solid var(--borda);font:inherit;margin:4px 0}
 .conf{border:1px solid var(--borda);border-left:5px solid #ccc;border-radius:10px;padding:8px;margin:6px 0}
-.conf.alta{border-left-color:#3f8f4f}.conf.media{border-left-color:#e8a33d}.conf.baixa{border-left-color:var(--erro)}
-.conf .txt{font-size:12px;color:#555}.conf .tag{font-size:11px;font-weight:700;margin-left:6px}
-.conf .alta-t{color:#3f8f4f}.conf .media-t{color:#b77a1c}.conf .baixa-t{color:var(--erro)}
-.conf .row{align-items:center}.conf .row>.pq{flex:0 0 auto}.conf .q{max-width:110px}
-.valor{background:var(--oliva);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px}.valor span{font-size:13px;opacity:.9}.valor b{display:block;font-size:30px;font-weight:800;margin:2px 0}.valor small{display:block;font-size:12px;opacity:.95}
-.valor details{margin-top:8px}.valor summary{cursor:pointer;font-size:13px}.valor table{color:#fff;margin-top:4px}.valor td{border-color:#ffffff33}.valor .muted{color:#f3efe6}
+.conf.alta{border-left-color:#3f8f4f}
+.conf.media{border-left-color:#e8a33d}
+.conf.baixa{border-left-color:var(--erro)}
+.conf .txt{font-size:12px;color:#555}
+.conf .tag{font-size:11px;font-weight:700;margin-left:6px}
+.conf .alta-t{color:#3f8f4f}
+.conf .media-t{color:#b77a1c}
+.conf .baixa-t{color:var(--erro)}
+.conf .row{align-items:center}
+.conf .row>.pq{flex:0 0 auto}
+.conf .q{max-width:110px}
+.valor{background:var(--oliva);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.valor span{font-size:13px;opacity:.9}
+.valor b{display:block;font-size:30px;font-weight:800;margin:2px 0}
+.valor small{display:block;font-size:12px;opacity:.95}
+.valor details{margin-top:8px}
+.valor summary{cursor:pointer;font-size:13px}
+.valor table{color:#fff;margin-top:4px}
+.valor td{border-color:#ffffff33}
+.valor .muted{color:#f3efe6}
 tr.tot td{border-top:2px solid var(--borda);background:var(--fundo)}
-.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:20}.modal img{max-width:95%;max-height:90%;border-radius:6px}
-body.view .editor{display:none!important}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
-button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
-@media(max-width:480px){header{gap:6px;padding:8px 10px}header .quem{display:none}header h1{font-size:16px}header a,header button{padding:5px 9px}}
+.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:20}
+.modal img{max-width:95%;max-height:90%;border-radius:6px}
 </style>
 </head>
 <body>
-<p id="carregando" style="padding:24px">Carregando…</p>
+<p id="carregando">Carregando…</p>
 <div id="sistema" class="oculto">
-  <header>
-    <img class="marca" src="logo.jpg" alt="TMC Engenharia">
-    <h1>Estoque</h1>
-    <span class="quem" id="quem"></span>
-    <a class="oculto" id="linkInicio" href="index.html">Início</a>
-    <button id="btnSair">Sair</button>
-  </header>
+<header class="topo">
+  <img class="marca" src="logo.jpg" alt="TMC Engenharia">
+  <h1>Estoque</h1>
+  <span class="quem" id="quem"></span>
+  <a class="btnlink" id="linkInicio" href="index.html" hidden>Início</a>
+  <button id="btnSair" type="button">Sair</button>
+</header>
   <div class="abas">
     <button data-tela="s" class="on">📦 Saldo</button>
     <button data-tela="m">🔁 Entradas e saídas</button>
@@ -68,25 +79,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   <main id="app"></main>
 </div>
 <div class="modal oculto" id="mod"><img id="modimg" alt="Foto da nota fiscal"></div>
-<div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="comum.js"></script>
 <script>
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ok = r => { if (r.error) throw r.error; return r.data; };
-const msg = e => (e && e.message) || 'Erro inesperado.';
-const brl = n => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-const num = n => Number(n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-const fmtDH = d => new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-const lerNum = v => { v = String(v).trim(); return parseFloat(v.includes(',') ? v.replace(/\./g, '').replace(',', '.') : v); };
-function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3000); }
-async function todos(q) { let r = [], i = 0; for (;;) { const d = ok(await q().range(i, i + 999)); r = r.concat(d); if (d.length < 1000) return r; i += 1000; } }
 
 let perfil, editor = false, materiais = [], movs = [], obras = [], resumo = {}, apelidos = {};
-const lembrar = (k, v) => { try { if (v !== undefined) localStorage.setItem('tmc_est_' + k, v); return localStorage.getItem('tmc_est_' + k) || ''; } catch (e) { return ''; } };
-const st = { tela: 's', cat: 'TODAS', busca: '', obraFiltro: lembrar('obra'), modo: lembrar('modo') || 'um', conf: [] };
+const mem = memoria('tmc_est_');
+const st = { tela: 's', cat: 'TODAS', busca: '', obraFiltro: mem.ler('obra'), modo: mem.ler('modo') || 'um', conf: [] };
 
 // ===== DADOS =====
 async function carregar() {
@@ -194,89 +195,73 @@ function comprime(f) {
 }
 
 // ===== AÇÕES =====
-async function salvaMov() {
-  const tipo = $('mt').value, material = $('mm').value.trim(), q = lerNum($('mq').value), obra = $('mo').value;
-  const mat = materiais.find(x => x.nome.toLowerCase() === material.toLowerCase());
-  if (!mat) return toast(material ? 'Material não cadastrado. Use "+ Novo material" primeiro.' : 'Escolha o material.');
+// Grava uma ou várias linhas de entrada/saída na obra escolhida (com a foto da nota, se houver)
+async function gravarMovimentos(itens, botao, rotulo) {
+  const tipo = $('mt').value, obra = $('mo').value, ent = tipo === 'E';
   if (!obra) return toast('Escolha a obra.');
-  if (!(q > 0)) return toast('Informe a quantidade.');
-  if (tipo === 'S') { const s = saldoObra(mat.nome, obra); if (s - q < 0 && !confirm(`${obra} tem só ${num(s)} de ${mat.nome}. O saldo vai ficar negativo. Lançar mesmo assim?`)) return; }
-  const bt = $('btnSalvar'); bt.disabled = true; bt.textContent = 'Salvando…';
-  let foto = null;
-  try {
-    const arq = tipo === 'E' && $('mf').files[0];
-    if (arq) {
-      const blob = await comprime(arq);
-      foto = new Date().toISOString().slice(0, 7) + '/' + Date.now() + '.jpg';
-      ok(await sb.storage.from('notas').upload(foto, blob, { contentType: 'image/jpeg' }));
-    }
-    const novo = {
-      tipo, material: mat.nome, quantidade: q, obra, usuario: perfil.nome, foto,
-      preco: tipo === 'E' ? (lerNum($('mp').value) || 0) : 0,
-      fornecedor: tipo === 'E' ? $('mfo').value.trim() : '',
-      nota: tipo === 'E' ? $('mnf').value.trim() : ''
-    };
-    movs.push(ok(await sb.from('movimentos').insert(novo).select().single()));
-    lembrar('obraLanc', obra); calcula(); toast((tipo === 'E' ? 'Entrada' : 'Saída') + ' salva em ' + obra + '.');
-    render();
-  } catch (e) {
-    if (foto) sb.storage.from('notas').remove([foto]);
-    toast('Não foi possível salvar: ' + msg(e)); bt.disabled = false; bt.textContent = 'Salvar';
-  }
-}
-async function salvaLista() {
-  const tipo = $('mt').value, obra = $('mo').value, rows = st.conf;
-  if (!obra) return toast('Escolha a obra.');
-  if (!rows.length) return toast('Escreva a lista e toque em "Identificar materiais".');
-  const ruins = rows.map((c, i) => (!c.mat || !(c.q > 0)) ? i + 1 : 0).filter(Boolean);
-  if (ruins.length) return toast(`Confira a(s) linha(s) ${ruins.join(', ')}: falta material ou quantidade.`);
-  if (tipo === 'S') {
-    const tot = {}; rows.forEach(c => tot[c.mat] = (tot[c.mat] || 0) + c.q);
+  if (!ent) {
+    const tot = {}; itens.forEach(c => tot[c.mat] = (tot[c.mat] || 0) + c.q);
     const neg = Object.entries(tot).filter(([m, q]) => saldoObra(m, obra) - q < 0).map(([m, q]) => `${m} (tem ${num(saldoObra(m, obra))}, saindo ${num(q)})`);
     if (neg.length && !confirm(`O saldo em ${obra} vai ficar negativo em:\n${neg.join('\n')}\n\nLançar mesmo assim?`)) return;
   }
-  const bt = $('btnSalvarLista'); bt.disabled = true; bt.textContent = 'Salvando…';
+  const bt = $(botao); bt.disabled = true; bt.textContent = 'Salvando…';
   let foto = null;
   try {
-    const arq = tipo === 'E' && $('mf').files[0];
+    const arq = ent && $('mf').files[0];
     if (arq) { foto = new Date().toISOString().slice(0, 7) + '/' + Date.now() + '.jpg'; ok(await sb.storage.from('notas').upload(foto, await comprime(arq), { contentType: 'image/jpeg' })); }
-    const forn = tipo === 'E' ? $('mfo').value.trim() : '', nota = tipo === 'E' ? $('mnf').value.trim() : '';
-    const novos = rows.map(c => ({ tipo, material: c.mat, quantidade: c.q, obra, usuario: perfil.nome, foto, preco: tipo === 'E' ? (lerNum(c.preco) || 0) : 0, fornecedor: forn, nota }));
+    const fornecedor = ent ? $('mfo').value.trim() : '', nota = ent ? $('mnf').value.trim() : '';
+    const novos = itens.map(c => ({ tipo, material: c.mat, quantidade: c.q, obra, usuario: perfil.nome, foto, preco: ent ? (lerNum(c.preco) || 0) : 0, fornecedor, nota }));
     movs.push(...ok(await sb.from('movimentos').insert(novos).select()));
-    // aprende o que foi digitado -> material escolhido
-    const aprender = rows.filter(c => normaliza(c.nome) !== normaliza(c.mat)).map(c => ({ texto: normaliza(c.nome), material: c.mat, atualizado_em: new Date().toISOString() }));
-    const unicos = Object.values(Object.fromEntries(aprender.map(a => [a.texto, a])));
-    if (unicos.length) sb.from('material_apelidos').upsert(unicos).then(r => { if (!r.error) unicos.forEach(a => apelidos[a.texto] = a.material); });
-    registrar(`${tipo === 'E' ? 'Entrada' : 'Saída'} em lista: ${rows.length} itens em ${obra}${nota ? ' (NF ' + nota + ')' : ''}`);
-    st.conf = []; lembrar('obraLanc', obra); calcula();
-    toast(`${rows.length} ${rows.length === 1 ? 'item salvo' : 'itens salvos'} em ${obra}.`); render();
+    mem.gravar('obraLanc', obra); calcula();
+    return { tipo, obra, nota };
   } catch (e) {
     if (foto) sb.storage.from('notas').remove([foto]);
-    toast('Não foi possível salvar: ' + msg(e)); bt.disabled = false; bt.textContent = 'Salvar todos';
+    toast('Não foi possível salvar: ' + msg(e)); bt.disabled = false; bt.textContent = rotulo;
   }
 }
-async function novoMatLinha(i) {
-  const c = st.conf[i];
-  const nome = (prompt('Nome do novo material:', c.nome.toUpperCase()) || '').trim().toUpperCase(); if (!nome) return;
-  if (materiais.some(m => m.nome === nome)) { c.mat = nome; c.score = 1; return desenhaConf(); }
-  const categoria = (prompt('Categoria:', 'OUTROS') || 'OUTROS').trim().toUpperCase();
+async function salvaMov() {
+  const nome = $('mm').value.trim(), q = lerNum($('mq').value);
+  const mat = materiais.find(x => x.nome.toLowerCase() === nome.toLowerCase());
+  if (!mat) return toast(nome ? 'Material não cadastrado. Use "+ Novo material" primeiro.' : 'Escolha o material.');
+  if (!(q > 0)) return toast('Informe a quantidade.');
+  const r = await gravarMovimentos([{ mat: mat.nome, q, preco: $('mp').value }], 'btnSalvar', 'Salvar');
+  if (r) { toast(`${r.tipo === 'E' ? 'Entrada' : 'Saída'} salva em ${r.obra}.`); render(); }
+}
+async function salvaLista() {
+  const rows = st.conf;
+  if (!rows.length) return toast('Escreva a lista e toque em "Identificar materiais".');
+  const ruins = rows.map((c, i) => (!c.mat || !(c.q > 0)) ? i + 1 : 0).filter(Boolean);
+  if (ruins.length) return toast(`Confira a(s) linha(s) ${ruins.join(', ')}: falta material ou quantidade.`);
+  const r = await gravarMovimentos(rows, 'btnSalvarLista', 'Salvar todos');
+  if (!r) return;
+  // aprende o que foi digitado -> material escolhido
+  const aprender = {};
+  rows.filter(c => normaliza(c.nome) !== normaliza(c.mat)).forEach(c => aprender[normaliza(c.nome)] = { texto: normaliza(c.nome), material: c.mat, atualizado_em: new Date().toISOString() });
+  const unicos = Object.values(aprender);
+  if (unicos.length) sb.from('material_apelidos').upsert(unicos).then(x => { if (!x.error) unicos.forEach(a => apelidos[a.texto] = a.material); });
+  registrar(`${r.tipo === 'E' ? 'Entrada' : 'Saída'} em lista: ${rows.length} itens em ${r.obra}${r.nota ? ' (NF ' + r.nota + ')' : ''}`);
+  st.conf = [];
+  toast(`${rows.length} ${rows.length === 1 ? 'item salvo' : 'itens salvos'} em ${r.obra}.`); render();
+}
+// Cadastra um material novo (pergunta nome e categoria); devolve o nome ou null
+async function cadastrarMaterial(nomeSugerido, categoriaSugerida) {
+  const nome = UP((prompt('Nome do novo material:', nomeSugerido) || '').trim()); if (!nome) return null;
+  if (materiais.some(m => m.nome === nome)) return nome;
+  const categoria = UP((prompt('Categoria:', categoriaSugerida) || 'OUTROS').trim());
   try {
     materiais.push(ok(await sb.from('materiais').insert({ nome, categoria }).select().single()));
     materiais.sort((a, b) => a.categoria.localeCompare(b.categoria) || a.nome.localeCompare(b.nome));
     registrar(`Material cadastrado: ${nome} (${categoria})`);
-    c.mat = nome; c.score = 1; desenhaConf();
-  } catch (e) { toast('Não foi possível cadastrar: ' + msg(e)); }
+    return nome;
+  } catch (e) { toast('Não foi possível cadastrar: ' + msg(e)); return null; }
+}
+async function novoMatLinha(i) {
+  const c = st.conf[i], nome = await cadastrarMaterial(UP(c.nome), 'OUTROS');
+  if (nome) { c.mat = nome; c.score = 1; desenhaConf(); }
 }
 async function novoMat() {
-  const nome = (prompt('Nome do novo material:') || '').trim().toUpperCase(); if (!nome) return;
-  if (materiais.some(m => m.nome === nome)) return toast('Esse material já existe.');
-  const categoria = (prompt('Categoria:', st.cat !== 'TODAS' ? st.cat : '') || 'OUTROS').trim().toUpperCase();
-  try {
-    materiais.push(ok(await sb.from('materiais').insert({ nome, categoria }).select().single()));
-    materiais.sort((a, b) => a.categoria.localeCompare(b.categoria) || a.nome.localeCompare(b.nome));
-    registrar(`Material cadastrado: ${nome} (${categoria})`); render();
-    const mm = $('mm'); if (mm) mm.value = nome;
-  } catch (e) { toast('Não foi possível cadastrar: ' + msg(e)); }
+  const nome = await cadastrarMaterial('', st.cat !== 'TODAS' ? st.cat : '');
+  if (nome) { render(); const mm = $('mm'); if (mm) mm.value = nome; }
 }
 async function delMov(id) {
   const m = movs.find(x => x.id === id);
@@ -298,7 +283,7 @@ async function verFoto(caminho) {
 const selObras = (id, vazio, sel) => `<select id="${id}" aria-label="Obra"><option value="">${vazio}</option>${obras.map(o => `<option value="${esc(o.nome)}" ${o.nome === sel ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select>`;
 function formLanc() {
   return `<div class="card editor"><b>Lançar movimento</b>
-  <div class="row"><select id="mt" aria-label="Tipo"><option value="E">⬆️ Entrada (chegou)</option><option value="S">⬇️ Saída (usado)</option></select>${selObras('mo', 'Escolha a obra…', st.obraFiltro || lembrar('obraLanc'))}</div>
+  <div class="row"><select id="mt" aria-label="Tipo"><option value="E">⬆️ Entrada (chegou)</option><option value="S">⬇️ Saída (usado)</option></select>${selObras('mo', 'Escolha a obra…', st.obraFiltro || mem.ler('obraLanc'))}</div>
   <div class="seg"><button data-modo="um" class="${st.modo === 'um' ? 'on' : ''}">Um item</button><button data-modo="lista" class="${st.modo === 'lista' ? 'on' : ''}">Lista de itens</button></div>
   ${st.modo === 'um' ? `<input list="dl" id="mm" placeholder="Material (digite para buscar)" autocomplete="off"><datalist id="dl">${materiais.map(m => `<option value="${esc(m.nome)}">${esc(m.categoria)}</option>`).join('')}</datalist>
   <input id="mq" inputmode="decimal" placeholder="Quantidade">` : `<label class="muted" for="ml">Um item por linha, com a quantidade no começo ou no fim. Ex.: <i>10 laje</i> • <i>cano 25 - 6</i> • <i>cabo 2,5 azul 100</i></label>
@@ -371,7 +356,6 @@ function go(t) { st.tela = t; document.querySelectorAll('.abas button').forEach(
 
 // ===== EVENTOS =====
 document.querySelectorAll('.abas button').forEach(b => b.onclick = () => go(b.dataset.tela));
-$('btnSair').onclick = () => TMC.sair();
 $('mod').onclick = () => { $('mod').classList.add('oculto'); $('modimg').src = ''; };
 $('app').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -380,7 +364,7 @@ $('app').addEventListener('click', e => {
   else if (b.dataset.del) delMov(+b.dataset.del);
   else if (b.id === 'btnNovoMat') novoMat();
   else if (b.id === 'btnSalvar') salvaMov();
-  else if (b.dataset.modo) { st.modo = b.dataset.modo; lembrar('modo', st.modo); render(); }
+  else if (b.dataset.modo) { st.modo = b.dataset.modo; mem.gravar('modo', st.modo); render(); }
   else if (b.id === 'btnIdent') { st.lista = $('ml').value; st.conf = lerLista(st.lista); if (!st.conf.length) toast('Escreva pelo menos um item.'); desenhaConf(); }
   else if (b.id === 'btnSalvarLista') salvaLista();
   else if (b.dataset.novomat) novoMatLinha(+b.dataset.novomat);
@@ -395,22 +379,18 @@ $('app').addEventListener('change', e => {
     else if (campo === 'q') c.q = lerNum(e.target.value) || null;
     else if (campo === 'preco') c.preco = e.target.value;
   }
-  if (e.target.id === 'fo') { st.obraFiltro = e.target.value; lembrar('obra', st.obraFiltro); calcula(); render(); }
+  if (e.target.id === 'fo') { st.obraFiltro = e.target.value; mem.gravar('obra', st.obraFiltro); calcula(); render(); }
 });
 $('app').addEventListener('input', e => {
   if (e.target.id === 'busca') { st.busca = e.target.value; $('tabSaldo').innerHTML = linhasSaldo(); }
 });
 
 (async () => {
-  perfil = await TMC.exigirAcesso('estoque');
-  editor = perfil.estoque === 'editar';
-  document.body.classList.toggle('view', !editor);
-  $('quem').textContent = perfil.nome + ' (' + (editor ? 'editor' : 'somente visualização') + ')';
-  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  ({ perfil, editor } = await TMC.iniciarPagina('estoque'));
   await carregar();
-  $('carregando').remove(); $('sistema').classList.remove('oculto');
+  TMC.mostrarPagina();
   render();
-})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+})().catch(TMC.falhaAoAbrir);
 </script>
 </body>
 </html>

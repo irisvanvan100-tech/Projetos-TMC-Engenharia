@@ -1,0 +1,27 @@
+/* ============================================================
+   ESTILO COMUM A TODAS AS PÁGINAS (padrão da Folha de Ponto)
+   ============================================================ */
+:root{--bege:#E3C4A8;--oliva:#7A8B6F;--fundo:#F3EFE6;--tinta:#2f352b;--borda:#d8cfbf;--erro:#a3392a}
+*{box-sizing:border-box}
+[hidden],.oculto{display:none!important}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:15px/1.4 "Segoe UI",system-ui,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
+#carregando{padding:24px}
+
+/* cabeçalho */
+header.topo{background:var(--oliva);color:#fff;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:relative}
+header.topo h1{margin:0;font-size:18px;font-weight:700;flex:1}
+header.topo .quem{opacity:.9}
+header.topo .marca{height:34px;background:#fff;border-radius:6px;padding:2px 8px}
+header.topo button,header.topo .btnlink{background:#fff;color:var(--oliva);border:1px solid #fff;border-radius:6px;padding:8px 14px;text-decoration:none;font-size:15px}
+header.topo .prog{position:absolute;left:0;right:0;bottom:0;height:4px;background:#ffffff40}
+header.topo .prog i{display:block;height:100%;background:#fff;transition:width .2s}
+
+/* aviso rápido */
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}
+#toast.show{opacity:1}
+
+/* quem só visualiza não vê botões de edição */
+body.view .editor{display:none!important}

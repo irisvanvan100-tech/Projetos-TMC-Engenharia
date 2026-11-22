@@ -4,14 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Prestação de Contas | Obras</title>
+<link rel="stylesheet" href="estilo.css">
 <style>
 :root{--bg:#F3EFE6;--card:#fff9f0;--sand:#E3C4A8;--olive:#7A8B6F;--ink:#2e342a;--mute:#6b7163;--line:#e2d8c6;--bad:#b4533c}
-@media (prefers-color-scheme:dark){:root{--bg:#23261f;--card:#2d3128;--sand:#8a6d55;--olive:#9bb08c;--ink:#f1ece0;--mute:#b3b8a6;--line:#444a3b;--bad:#e08a72;color-scheme:dark}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif;padding:0 0 env(safe-area-inset-bottom,0)}
 main{max-width:1000px;margin:0 auto;padding:16px}
-header{background:var(--olive);color:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-header h1{margin:0;font-size:20px}header p{margin:2px 0 0;opacity:.9;font-size:13px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .card small{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
@@ -48,17 +46,19 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 #modal .box{background:var(--card);border-radius:14px;padding:12px;max-width:min(92vw,720px);max-height:94vh;overflow:auto}
 #modal img{max-width:100%;max-height:62vh;display:block;margin:0 auto;border-radius:8px}
 #modal p{margin:10px 0 0;font-size:14px}
-header .marca{height:44px;background:#fff;border-radius:8px;padding:3px 8px}
-.btnlink{display:inline-block;background:var(--sand);color:#2e342a;border-radius:10px;padding:9px 12px;text-decoration:none;font-weight:600;margin-right:6px}
 </style>
 </head>
 <body>
 
-<main id="app" class="hide">
-<header>
-  <div style="display:flex;align-items:center;gap:12px"><img class="marca" src="logo.jpg" alt="TMC Engenharia"><div><h1>Prestação de Contas | Obras</h1><p>Comprou → fotografou → registrou → enviou</p></div></div>
-  <div style="text-align:right"><div id="ola" style="font-size:14px;margin-bottom:6px;font-weight:600"></div><a class="btnlink hide" id="linkInicio" href="index.html">Início</a><button class="sec" id="sair">Sair</button></div>
+<div id="app" class="hide">
+<header class="topo">
+  <img class="marca" src="logo.jpg" alt="TMC Engenharia">
+  <h1>Prestação de Contas</h1>
+  <span class="quem" id="quem"></span>
+  <a class="btnlink" id="linkInicio" href="index.html" hidden>Início</a>
+  <button id="btnSair" type="button">Sair</button>
 </header>
+<main>
 <div id="err"></div><div id="st" style="color:var(--olive);font-size:13px"></div>
 <div class="cards">
   <div class="card sand"><small>Recebido (caixa)</small><b id="cRec">—</b><button class="sec edit" id="bRec" style="margin-top:6px;padding:4px 10px">Editar</button></div>
@@ -101,6 +101,7 @@ header .marca{height:44px;background:#fff;border-radius:8px;padding:3px 8px}
   <p style="margin:0 0 10px;color:var(--mute);font-size:13px">Apaga todos os lançamentos e todas as fotos e zera o valor recebido em caixa, para começar uma nova prestação. Obras e categorias continuam cadastradas. Gere o PDF antes: não dá para desfazer.</p>
   <button id="bZerar" style="background:var(--bad)">Zerar tudo</button></section>
 </main>
+</div>
 
 <div id="modal" class="hide"><div class="box"><img id="mImg" alt="comprovante"><p id="mCap"></p>
 <div class="row" style="margin-top:10px"><button class="sec" id="mFecha">Fechar</button><button class="sec edit" id="mCamT">📷 Trocar</button><button class="sec edit" id="mGalT">🖼️ Trocar</button><button class="edit" id="mDel" style="background:var(--bad)">Excluir foto</button></div></div></div>
@@ -110,13 +111,10 @@ header .marca{height:44px;background:#fff;border-radius:8px;padding:3px 8px}
 <input type="file" id="inGalF" accept="image/*" multiple class="hide">
 <input type="file" id="inCamR" accept="image/*" capture="environment" class="hide">
 <input type="file" id="inGalR" accept="image/*" multiple class="hide">
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="comum.js"></script>
 <script>
-const $ = id => document.getElementById(id);
-const brl = v => (+v || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const BUCKET = "comprovantes";
 let leitor = false, rows = [], obras = [], cats = [], recebido = 0, fotos = [], urls = {}, pend = [], alvo = null, fotoAberta = null;
 const st = t => { $("st").textContent = t || ""; };
@@ -245,14 +243,11 @@ $("bRec").onclick = async () => {
   const {error} = await sb.from("caixa").upsert({id:1, recebido:n}); if (error) return fail(error); load();
 };
 
-$("sair").onclick = () => TMC.sair();
 async function iniciar() {
-  const p = await TMC.exigirAcesso("prestacao");   // sem login/permissão volta para a página central
-  leitor = p.prestacao !== "editar";
+  const { editor } = await TMC.iniciarPagina("prestacao");
+  leitor = !editor;
   document.body.classList.toggle("leitor", leitor);
-  $("ola").textContent = "Olá, " + p.nome;
-  if (p.folha !== "nenhum") $("linkInicio").classList.remove("hide");
-  $("app").classList.remove("hide");
+  TMC.mostrarPagina();
   load();
 }
 
@@ -266,7 +261,7 @@ $("bPdf").onclick = async () => {
   if (!L.length) return alert("Nenhum lançamento nesse filtro.");
   $("bPdf").disabled = true;
   try {
-    const doc = new window.jspdf.jsPDF({unit:"mm", format:"a4"}), W = 210, H = 297, M = 15;
+    const jsPDF = await libsPdf("jspdf"), doc = new jsPDF({unit:"mm", format:"a4"}), W = 210, H = 297, M = 15;
     const sum = a => a.reduce((x, r) => x + (+r.valor || 0), 0), totalGeral = sum(rows);
     doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("Prestação de Contas - Obras", M, 20);
     doc.setFont("helvetica", "normal"); doc.setFontSize(10);

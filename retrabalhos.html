@@ -5,79 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7A8B6F">
 <title>Retrabalhos | TMC Engenharia</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="componentes.css">
 <style>
-
-/* Layout: formulário + lista à esquerda, folha A4 da prévia do PDF à direita (abas no celular). Cores da TMC: oliva e bege. */
-:root{
-  --bg:#F3EFE6; --surface:#ffffff; --fg:#2f352b; --muted:#6b7163; --line:#ddd4c4;
-  --accent:#7A8B6F; --accent-strong:#5d6d53; --accent-fg:#ffffff; --sand:#E3C4A8; --chip:#f6f2ea;
-  --danger:#a3392a; --desk:#e7e1d4;
-  --display:"Archivo","Segoe UI",system-ui,sans-serif; --body:"Inter","Segoe UI",system-ui,sans-serif;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
-  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --sand:#7a634e; --chip:#2e342a;
-  --danger:#e08a7b; --desk:#151813; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
-  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --sand:#7a634e; --chip:#2e342a;
-  --danger:#e08a7b; --desk:#151813; color-scheme:dark}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--body);margin:0}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}
-:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
-
-header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--accent);color:var(--accent-fg);
-  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  display:flex;align-items:center;gap:12px}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent)}
-header.top img{height:30px;background:#fff;border-radius:6px;padding:2px 6px}
-header.top h1{font:800 18px/1 var(--display);margin:0;letter-spacing:.01em;flex:1}
-header.top .proto{font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:#ffffff26;border-radius:20px;padding:4px 10px}
-
-
 .wrap{display:block;padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:720px;margin:0 auto}
 .listhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .listhead h2{margin:0}
-.btnprev{border:1px solid var(--accent);background:var(--surface);color:var(--accent-strong);border-radius:10px;padding:8px 12px;font-weight:700;white-space:nowrap}
-.fab{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
-  padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.btnprev{border:1px solid var(--accent);background:var(--surface);color:var(--accent-strong);border-radius:6px;padding:8px 12px;font-weight:700;white-space:nowrap}
 .fab .btn{max-width:720px;margin:0 auto;display:block}
-/* prévia por cima da tela */
-.overlay{position:fixed;inset:0;z-index:20;background:var(--desk);display:flex;flex-direction:column}
-.ovbar{display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-fg);
-  padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.ovbar b{flex:1;font:800 16px var(--display)}
-.ovbar button{border:0;border-radius:10px;padding:9px 14px;font-weight:700}
 .ovbar .baixar{background:#fff;color:#4a5a41}
 .ovbar .fechar{background:#ffffff26;color:var(--accent-fg)}
-.ovbody{flex:1;overflow:auto;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .ovnote{max-width:794px;margin:0 auto 10px;font-size:12px;color:var(--muted);min-height:1em}
 .col{min-width:0;display:flex;flex-direction:column;gap:14px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
 .panel h2{font:700 15px/1.2 var(--display);margin:0 0 10px;letter-spacing:.01em}
-label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
 label.f:first-of-type{margin-top:0}
-input[type=text],select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+input[type=text],select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
 textarea{min-height:72px;resize:vertical}
 #desc{text-transform:uppercase}
-.falta{border-color:var(--danger)!important;box-shadow:0 0 0 1px var(--danger)}
 #desc::placeholder{text-transform:none}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{border:1px solid var(--line);background:var(--chip);border-radius:20px;padding:7px 12px;font-size:13px}
 .chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
-.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
 @media (max-width:480px){.row.pilha{flex-direction:column;gap:0}}
-.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;background:var(--accent);color:var(--accent-fg);width:100%;margin-top:12px}
+.btn{border:0;border-radius:6px;padding:11px 14px;font-weight:700;background:var(--accent);color:var(--accent-fg);width:100%;margin-top:12px}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg);font-weight:600}
-.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
-.err{color:var(--danger);font-size:13px;margin:8px 0 0;min-height:1em}
-
 .lista{display:flex;flex-direction:column;gap:8px}
-.item{border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start}
+.item{border:1px solid var(--line);border-radius:6px;padding:9px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start}
 .item .n{font:700 13px/1.4 var(--display);color:var(--accent-strong);font-variant-numeric:tabular-nums}
 .item .t{min-width:0}
 .item .loc{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
@@ -87,22 +42,21 @@ textarea{min-height:72px;resize:vertical}
 .item .acts button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 8px;font-size:12px}
 .item.sure{border-color:var(--danger)}
 .item .acts .del{color:var(--danger);border-color:var(--danger)}
-.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.tags:empty{display:none}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tags:empty{display:none}
 .tg{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px}
 .tg.orig{background:var(--chip);color:var(--muted)}
 .tg.falta{background:#fbe7cf;color:#8a4b0f}
 .vazio{color:var(--muted);font-size:13px;padding:6px 2px}
-
 /* ----- prévia do PDF: papel sempre branco ----- */
-.paper{--ink:#20241c;--soft:#646a5c;--rule:#d9d2c3;--band:#7A8B6F;--band2:#efe8dc;
-  width:794px;min-height:1123px;margin:0 auto;background:#fff;color:var(--ink);box-shadow:0 2px 14px #0000002a;
-  padding:44px 48px 40px;font:11.5px/1.45 var(--body);display:flex;flex-direction:column;color-scheme:light}
+.paper{--ink:#20241c;--soft:#646a5c;--rule:#d9d2c3;--band:#7A8B6F;--band2:#efe8dc; width:794px;min-height:1123px;margin:0 auto;background:#fff;color:var(--ink);box-shadow:0 2px 14px #0000002a; padding:44px 48px 40px;font:11.5px/1.45 var(--body);display:flex;flex-direction:column;color-scheme:light}
 .p-head{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;border-bottom:3px solid var(--band);padding-bottom:14px}
 .p-head img{width:150px}
 .p-head h3{font:800 20px/1.1 var(--display);margin:0;letter-spacing:.02em;text-transform:uppercase}
 .p-head .sub{color:var(--soft);margin-top:4px}
 .p-info{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--rule);border-radius:6px;margin:14px 0 16px;overflow:hidden}
-.p-info div{padding:7px 10px;border-right:1px solid var(--rule)}.p-info div:last-child{border-right:0}
+.p-info div{padding:7px 10px;border-right:1px solid var(--rule)}
+.p-info div:last-child{border-right:0}
 .p-info small{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft)}
 .p-info b{font-size:12.5px;font-variant-numeric:tabular-nums}
 .p-grp{margin-bottom:12px;break-inside:avoid}
@@ -126,33 +80,21 @@ textarea{min-height:72px;resize:vertical}
 .p-sign div{border-top:1px solid var(--ink);padding-top:4px;text-align:center;font-size:10px;color:var(--soft)}
 .p-foot{display:flex;justify-content:space-between;font-size:9px;color:var(--soft);margin-top:14px;border-top:1px solid var(--rule);padding-top:6px}
 .p-empty{color:var(--soft);text-align:center;padding:60px 0;border:1px dashed var(--rule);border-radius:6px}
-.scaler{transform-origin:top left}
 #scaleBox{overflow:hidden}
-
 #scaleBox{max-width:794px;margin:0 auto}
 @media (prefers-reduced-motion:no-preference){.item{transition:border-color .2s}}
-
-/* ---- sistema ---- */
-body.view .editor{display:none!important}
-header.top .quem{font-size:12px;opacity:.9}
-header.top a,header.top .sair{background:#fff;color:#4a5a41;border:0;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:600;font-size:13px}
-@media (max-width:480px){header.top .quem{display:none}header.top h1{font-size:16px}}
 .paper{min-height:1123px;height:auto}
-#carregando{padding:24px}
-.oculto{display:none!important}
-.item.busy{opacity:.6}
-#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
 </style>
 </head>
 <body>
 <p id="carregando">Carregando…</p>
 <div id="sistema" class="oculto">
-<header class="top">
-  <img src="logo.jpg" alt="TMC Engenharia">
+<header class="topo">
+  <img class="marca" src="logo.jpg" alt="TMC Engenharia">
   <h1>Retrabalhos</h1>
   <span class="quem" id="quem"></span>
-  <a class="oculto" id="linkInicio" href="index.html">Início</a>
-  <button class="sair" id="btnSair" type="button">Sair</button>
+  <a class="btnlink" id="linkInicio" href="index.html" hidden>Início</a>
+  <button id="btnSair" type="button">Sair</button>
 </header>
 
 <main class="wrap" id="wrap">
@@ -181,7 +123,6 @@ header.top a,header.top .sair{background:#fff;color:#4a5a41;border:0;border-radi
 
     <section class="panel">
       <div class="listhead"><h2 id="tituloLista">Pendências</h2><button class="btnprev" id="btnPrev2" type="button">📄 Ver prévia</button></div>
-      <label class="f oculto" id="lblObraView" for="obraView">Obra</label><select id="obraView" class="oculto"></select>
       <div class="lista" id="lista"></div>
     </section>
   </div>
@@ -195,23 +136,14 @@ header.top a,header.top .sair{background:#fff;color:#4a5a41;border:0;border-radi
   <div class="ovbody"><p class="ovnote" id="ovnote"></p>
     <div id="scaleBox"><div class="scaler" id="scaler"><article class="paper" id="paper"></article></div></div></div>
 </div>
-<div id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="comum.js"></script>
 <script>
 const APTS = ['101', '102', '201', '202'];
 const COMODOS = ['WC', 'Sala', 'Varanda', 'Cozinha', 'Quarto 01', 'Suíte', 'Área de serviço', 'Outro'];
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ok = r => { if (r.error) throw r.error; return r.data; };
-const msg = e => (e && e.message) || 'Erro inesperado.';
-const UP = t => String(t || '').toLocaleUpperCase('pt-BR');
-function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3500); }
-async function todos(q) { let r = [], i = 0; for (;;) { const d = ok(await q().range(i, i + 999)); r = r.concat(d); if (d.length < 1000) return r; i += 1000; } }
-const lembrar = (kk, v) => { try { if (v !== undefined) localStorage.setItem('tmc_ret_' + kk, v); return localStorage.getItem('tmc_ret_' + kk) || ''; } catch (e) { return ''; } };
+const mem = memoria('tmc_ret_');
 
 let perfil, editor = false, itens = [], cronoObras = [], comodo = 'WC', editando = null, confirmar = null;
 
@@ -223,7 +155,7 @@ async function carregar() {
 // Obras = as do cronograma + as que já têm pendência (ex.: vindas de uma vistoria)
 function listaObras() { return [...new Set([...cronoObras.map(o => o.nome), ...itens.map(x => x.obra)])].sort((a, b) => a.localeCompare(b, 'pt')); }
 function montaObras() {
-  const l = listaObras(), atual = $('obra').value || lembrar('obra');
+  const l = listaObras(), atual = $('obra').value || mem.ler('obra');
   $('obra').innerHTML = l.map(o => `<option>${esc(o)}</option>`).join('') || '<option value="">Cadastre uma obra no Cronograma</option>';
   if (l.includes(atual)) $('obra').value = atual;
   locais();
@@ -233,9 +165,8 @@ function locais() {
   if (o) for (let b = 1; b <= o.blocos; b++) APTS.forEach(a => l.push(`Bloco ${b} • Apto ${a}`));
   itens.filter(x => x.obra === nome && x.local && !l.includes(x.local)).forEach(x => l.push(x.local));
   $('aptoList').innerHTML = [...new Set(l)].map(x => `<option value="${esc(x)}">`).join('');
-  if (!$('apto').value) $('apto').value = lembrar('local') || (o ? 'Bloco 1 • Apto 101' : '');
+  if (!$('apto').value) $('apto').value = mem.ler('local') || (o ? 'Bloco 1 • Apto 101' : '');
 }
-const registrar = () => {};
 
 // ===== FORMULÁRIO =====
 function chips() {
@@ -243,7 +174,7 @@ function chips() {
   $('outroCom').hidden = comodo !== 'Outro';
 }
 $('comodos').onclick = e => { const b = e.target.closest('button'); if (!b) return; comodo = b.dataset.c; chips(); if (comodo === 'Outro') $('outroCom').focus(); };
-$('obra').onchange = () => { lembrar('obra', $('obra').value); $('apto').value = ''; locais(); render(); };
+$('obra').onchange = () => { mem.gravar('obra', $('obra').value); $('apto').value = ''; locais(); render(); };
 ['desc', 'resp', 'mat'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('falta')));
 
 function limpaForm() {
@@ -272,7 +203,7 @@ $('frm').onsubmit = async e => {
   try {
     if (editando) { ok(await sb.from('pendencias').update(dados).eq('id', editando)); Object.assign(itens.find(x => x.id === editando), dados); }
     else itens.push(ok(await sb.from('pendencias').insert({ ...dados, criado_por: perfil.nome }).select().single()));
-    lembrar('local', dados.local); limpaForm(); render(); $('desc').focus(); toast('Pendência salva.');
+    mem.gravar('local', dados.local); limpaForm(); render(); $('desc').focus(); toast('Pendência salva.');
   } catch (err) { $('erro').textContent = 'Não foi possível salvar: ' + msg(err); }
   b.disabled = false;
 };
@@ -343,29 +274,19 @@ function papel() {
   $('ovnote').textContent = inc ? `⚠ ${inc} ${inc === 1 ? 'pendência está' : 'pendências estão'} sem responsável ou material (aparecem com “—” no PDF). Complete pelo Editar antes de gerar.` : '';
   ajusta();
 }
-function ajusta() {
-  const box = $('scaleBox'), w = box.clientWidth; if (!w) return;
-  const s = Math.min(1, w / 794); $('scaler').style.transform = `scale(${s})`; box.style.height = ($('paper').offsetHeight * s) + 'px';
-}
+const ajusta = () => encaixarFolha($('scaleBox'), $('scaler'), 794);
 addEventListener('resize', ajusta);
-function abrePrevia() { papel(); $('ov').hidden = false; document.body.style.overflow = 'hidden'; ajusta(); $('btnFechar').focus(); }
-function fechaPrevia() { $('ov').hidden = true; document.body.style.overflow = ''; }
+function abrePrevia() { papel(); abrirJanela($('ov')); ajusta(); $('btnFechar').focus(); }
+function fechaPrevia() { fecharJanela($('ov')); }
 $('btnPrev').onclick = abrePrevia; $('btnPrev2').onclick = abrePrevia; $('btnFechar').onclick = fechaPrevia;
 addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ov').hidden) fechaPrevia(); });
 
 // ===== PDF (várias páginas se precisar) =====
-let logoData = null;
-async function logo() {
-  if (logoData) return logoData;
-  const b = await (await fetch('logo.jpg')).blob();
-  logoData = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });
-  return logoData;
-}
 async function gerarPdf() {
-  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const jsPDF = await libsPdf('jspdf', 'autotable'), doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const OLIVA = [122, 139, 111], BEGE = [239, 232, 220], TINTA = [32, 36, 28], SUAVE = [100, 106, 92], W = 210, M = 14;
   const lista = daObra().sort(ordem), nums = new Map(lista.map((x, i) => [x.id, i + 1])), g = grupos(lista);
-  try { doc.addImage(await logo(), 'JPEG', M, 10, 38, 23.6); } catch (e) {}
+  try { doc.addImage(await logoPdf(), 'JPEG', M, 10, 38, 23.6); } catch (e) {}
   doc.setTextColor(...TINTA); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text('LISTA DE PENDÊNCIAS • RETRABALHOS', 58, 20);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...SUAVE); doc.text('Vistoria de entrega — itens a corrigir antes da liberação', 58, 26);
   doc.setDrawColor(...OLIVA); doc.setLineWidth(0.9); doc.line(M, 36, W - M, 36);
@@ -409,22 +330,17 @@ async function gerarPdf() {
 }
 $('btnBaixar').onclick = async () => {
   const b = $('btnBaixar'); b.disabled = true; b.textContent = 'Gerando…';
-  try { const nome = ('retrabalhos_' + obraAtual() + '_' + new Date().toISOString().slice(0, 10)).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w-]+/g, '_') + '.pdf'; (await gerarPdf()).save(nome); }
+  try { const nome = nomeArquivo('retrabalhos', obraAtual(), hojeISO()); (await gerarPdf()).save(nome); }
   catch (e) { toast('Não foi possível gerar o PDF: ' + msg(e)); }
   b.disabled = false; b.textContent = '⬇ Baixar PDF';
 };
-$('btnSair').onclick = () => TMC.sair();
 
 (async () => {
-  perfil = await TMC.exigirAcesso('retrabalhos');
-  editor = perfil.retrabalhos === 'editar';
-  document.body.classList.toggle('view', !editor);
-  $('quem').textContent = perfil.nome;
-  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  ({ perfil, editor } = await TMC.iniciarPagina('retrabalhos'));
   await carregar();
   montaObras(); chips(); render();
-  $('carregando').remove(); $('sistema').classList.remove('oculto');
-})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+  TMC.mostrarPagina();
+})().catch(TMC.falhaAoAbrir);
 </script>
 </body>
 </html>

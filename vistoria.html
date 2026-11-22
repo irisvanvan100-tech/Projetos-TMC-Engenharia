@@ -5,54 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7A8B6F">
 <title>Vistoria | TMC Engenharia</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="componentes.css">
 <style>
-
-/* Layout: uma coluna para usar na obra pelo celular — dados da unidade, um cartão por ambiente (C/NC por disciplina + observações), assinaturas; prévia A4 deitada por cima da tela. */
-:root{
-  --bg:#F3EFE6; --surface:#ffffff; --fg:#2f352b; --muted:#6b7163; --line:#ddd4c4;
-  --accent:#7A8B6F; --accent-strong:#5d6d53; --accent-fg:#ffffff; --chip:#f6f2ea;
-  --ok:#3f8f4f; --ok-bg:#e3f0e1; --nc:#b3261e; --nc-bg:#f8e1de; --danger:#a3392a; --desk:#e7e1d4;
-  --display:"Archivo","Segoe UI",system-ui,sans-serif; --body:"Inter","Segoe UI",system-ui,sans-serif;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
-  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --chip:#2e342a;
-  --ok:#8fcf8f; --ok-bg:#24402a; --nc:#f09a90; --nc-bg:#4a2622; --danger:#e08a7b; --desk:#151813; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
-  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --chip:#2e342a;
-  --ok:#8fcf8f; --ok-bg:#24402a; --nc:#f09a90; --nc-bg:#4a2622; --danger:#e08a7b; --desk:#151813; color-scheme:dark}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--body);margin:0}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}
-:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
-
-header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--accent);color:var(--accent-fg);
-  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent)}
-header.top img{height:30px;background:#fff;border-radius:6px;padding:2px 6px}
-header.top h1{font:800 18px/1 var(--display);margin:0;flex:1}
-header.top .proto{font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:#ffffff26;border-radius:20px;padding:4px 10px}
-.prog{height:4px;background:#ffffff40;position:absolute;left:0;right:0;bottom:0}.prog i{display:block;height:100%;background:#fff;transition:width .2s}
-
-.wrap{padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
-.panel h2{font:700 15px/1.2 var(--display);margin:0 0 10px}
-label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
-.grid2>div{min-width:0}
-@media (max-width:480px){.grid2{grid-template-columns:1fr}}
-input[type=text],input[type=date],select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-textarea{min-height:64px;resize:vertical;text-transform:uppercase}
-textarea::placeholder{text-transform:none}
+.prog{height:4px;background:#ffffff40;position:absolute;left:0;right:0;bottom:0}
+.prog i{display:block;height:100%;background:#fff;transition:width .2s}
 .resumo{display:flex;gap:8px;flex-wrap:wrap}
 .resumo span{font-size:12px;border-radius:20px;padding:5px 10px;background:var(--chip);font-variant-numeric:tabular-nums}
-.resumo .c{background:var(--ok-bg);color:var(--ok);font-weight:700}.resumo .nc{background:var(--nc-bg);color:var(--nc);font-weight:700}
-
-.amb{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.resumo .c{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.resumo .nc{background:var(--nc-bg);color:var(--nc);font-weight:700}
+.amb{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .amb>header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#20241c;color:#fff}
 .amb>header b{font:700 15px var(--display);flex:1}
 .amb>header .st{font-size:12px;opacity:.9;font-variant-numeric:tabular-nums}
@@ -61,7 +23,7 @@ textarea::placeholder{text-transform:none}
 .disc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
 .disc span{font-weight:500}
 .seg{display:flex;gap:6px}
-.seg button{min-width:58px;border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button{min-width:58px;border:1.5px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 10px;font-weight:700;font-size:13px;color:var(--muted)}
 .seg button.c[aria-pressed="true"]{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 .seg button.nc[aria-pressed="true"]{background:var(--nc-bg);border-color:var(--nc);color:var(--nc)}
 .discs{padding-bottom:8px}
@@ -70,53 +32,23 @@ textarea::placeholder{text-transform:none}
 .discobs textarea{border-color:var(--nc);min-height:56px}
 .discobs .aviso{font-size:12px;color:var(--nc);margin:4px 0 0;font-weight:600}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-
 .sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:480px){.sigs{grid-template-columns:1fr}}
-.sig{border:1.5px dashed var(--line);border-radius:12px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface);padding:8px;text-align:center}
+.sig{border:1.5px dashed var(--line);border-radius:8px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface);padding:8px;text-align:center}
 .sig img{max-height:70px;max-width:100%;background:#fff;border-radius:6px}
 .sig small{color:var(--muted);font-size:12px}
 .sig b{font-size:13px}
-
-.btn{border:0;border-radius:10px;padding:12px 14px;font-weight:700;background:var(--accent);color:var(--accent-fg);width:100%}
-.fab{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
-  padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.fab .btn{max-width:760px;margin:0 auto;display:block}
-
-/* janelas por cima: prévia e assinatura */
-.overlay{position:fixed;inset:0;z-index:20;background:var(--desk);display:flex;flex-direction:column}
-.ovbar{display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-fg);
-  padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.ovbar b{flex:1;font:800 16px var(--display)}
-.ovbar button{border:0;border-radius:10px;padding:9px 14px;font-weight:700}
-.ovbar .claro{background:#fff;color:#4a5a41}.ovbar .vidro{background:#ffffff26;color:var(--accent-fg)}
-.ovbody{flex:1;overflow:auto;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.ovnote{max-width:1123px;margin:0 auto 10px;font-size:13px;color:var(--fg)}
-.ovnote ul{margin:4px 0 0;padding-left:18px;color:var(--nc)}
-#scaleBox{overflow:hidden;max-width:1123px;margin:0 auto}
-.scaler{transform-origin:top left}
 .padbox{flex:1;display:flex;flex-direction:column;gap:10px;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .padbox p{margin:0;color:var(--muted);font-size:13px}
-.acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:480px){.acoes{grid-template-columns:1fr}}
-.btn.sec{background:var(--surface);color:var(--accent-strong);border:1.5px solid var(--accent)}
 .btn.perigo{background:var(--surface);color:var(--danger);border:1.5px solid var(--danger)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.enviado{font-size:12px;color:var(--muted);margin:8px 0 0}
 .dlgbox{max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:10px}
-.pc{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--nc);border-radius:12px;padding:10px 12px}
+.pc{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--nc);border-radius:8px;padding:10px 12px}
 .pc .loc{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .pc .d{font-weight:600;text-transform:uppercase;margin:2px 0 8px}
-.pc .row{display:flex;gap:8px}.pc .row>*{flex:1;min-width:0}
+.pc .row{display:flex;gap:8px}
+.pc .row>*{flex:1;min-width:0}
 @media (max-width:480px){.pc .row{flex-direction:column}}
-.msg{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px}
-.msg.ok{border-color:var(--ok);color:var(--fg)}
-#pad{flex:1;width:100%;min-height:200px;background:#fff;border:1px solid var(--line);border-radius:12px;touch-action:none}
-
-/* ----- folha do PDF (A4 deitada), sempre papel branco, cores do seu modelo ----- */
-.paper{--ink:#1c1c1c;--red:#c8102e;--soft:#6d6d6d;--rule:#cfcfcf;
-  width:1123px;height:794px;background:#fff;color:var(--ink);box-shadow:0 2px 14px #0000002a;padding:30px 34px 26px;
-  font:11px/1.35 Arial,Helvetica,sans-serif;display:flex;flex-direction:column;color-scheme:light}
+#pad{flex:1;width:100%;min-height:200px;background:#fff;border:1px solid var(--line);border-radius:8px;touch-action:none}
 .ph{display:flex;align-items:center;gap:26px;border-bottom:2px solid var(--red);padding-bottom:10px}
 .ph img{width:140px}
 .ph h3{margin:0;font-size:22px;font-weight:700}
@@ -129,12 +61,8 @@ textarea::placeholder{text-transform:none}
 .pl em{color:var(--soft);font-style:normal}
 .bx{display:inline-block;width:10px;height:10px;border:1px solid var(--ink);vertical-align:-1px;margin-right:3px;position:relative;background:#fff}
 .bx.on::after{content:"";position:absolute;inset:1.5px;background:var(--ink)}
-.pt{width:100%;border-collapse:collapse;table-layout:fixed}
-.pt th{background:var(--red);color:#fff;font-size:9.5px;padding:7px 3px;font-weight:700;letter-spacing:.01em}
-.pt td{border:1px solid #9a9a9a;height:64px;text-align:center;font-size:10px;vertical-align:middle}
 .pt td.am{background:#1c1c1c;color:#fff;font-weight:700;font-size:11.5px;width:115px}
-.pt td.ob{text-align:left;padding:4px 10px;vertical-align:top;background:repeating-linear-gradient(to bottom,transparent 0 15px,#c9c9c9 15px 16px);background-position:0 4px;
-  font-size:9.5px;line-height:16px;text-transform:uppercase;overflow:hidden}
+.pt td.ob{text-align:left;padding:4px 10px;vertical-align:top;background:repeating-linear-gradient(to bottom,transparent 0 15px,#c9c9c9 15px 16px);background-position:0 4px; font-size:9.5px;line-height:16px;text-transform:uppercase;overflow:hidden}
 .pt td.nc{background:#fde8ea}
 .cc{display:inline-flex;gap:6px;white-space:nowrap}
 .pdecl{margin-top:8px;font-size:11px}
@@ -143,39 +71,23 @@ textarea::placeholder{text-transform:none}
 .psig .ln{border-top:1px solid var(--ink);padding-top:3px}
 .psig img{height:42px;display:block;margin:0 auto 2px}
 .psig .vazio{height:44px}
-
-/* ---- sistema ---- */
-header.top .quem{font-size:12px;opacity:.9}
-header.top a,header.top .sair{background:#fff;color:#4a5a41;border:0;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:600;font-size:13px}
-@media (max-width:480px){header.top .quem{display:none}header.top h1{font-size:16px}}
-.abas{display:flex;gap:6px}
-.abas button{flex:1;border:1px solid var(--accent);background:var(--surface);color:var(--accent-strong);border-radius:10px;padding:9px 6px;font-weight:600}
-.abas button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
 .acoes3{display:grid;grid-template-columns:1fr;gap:10px}
-.gl{display:flex;flex-direction:column;gap:8px}
-.gi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center}
+.gi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:center}
 .gi .t{flex:1;min-width:0}
-.gi .t b{display:block}
-.gi .t small{color:var(--muted);font-size:12px}
 .gi .ncb{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;background:var(--nc-bg);color:var(--nc);white-space:nowrap}
 .gi .okb{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;background:var(--ok-bg);color:var(--ok);white-space:nowrap}
-.gi .lkent{border:1px solid var(--accent);color:var(--accent-strong);border-radius:9px;padding:7px 10px;font-weight:600;white-space:nowrap;text-decoration:none}
-.gi button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;font-weight:600;white-space:nowrap}
-#carregando{padding:24px}
-.oculto{display:none!important}
-#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
-#render{position:fixed;left:-20000px;top:0}
+.gi .lkent{border:1px solid var(--accent);color:var(--accent-strong);border-radius:6px;padding:7px 10px;font-weight:600;white-space:nowrap;text-decoration:none}
 </style>
 </head>
 <body>
 <p id="carregando">Carregando…</p>
 <div id="sistema" class="oculto">
-<header class="top">
-  <img src="logo.jpg" alt="TMC Engenharia">
+<header class="topo">
+  <img class="marca" src="logo.jpg" alt="TMC Engenharia">
   <h1>Vistoria</h1>
   <span class="quem" id="quem"></span>
-  <a class="oculto" id="linkInicio" href="index.html">Início</a>
-  <button class="sair" id="btnSair" type="button">Sair</button>
+  <a class="btnlink" id="linkInicio" href="index.html" hidden>Início</a>
+  <button id="btnSair" type="button">Sair</button>
   <div class="prog"><i id="progBar"></i></div>
 </header>
 
@@ -253,36 +165,23 @@ header.top a,header.top .sair{background:#fff;color:#4a5a41;border:0;border-radi
   <div class="padbox"><p>Assine com o dedo dentro do quadro. Vire o celular de lado para ter mais espaço.</p><canvas id="pad"></canvas></div>
 </div>
 
-<div id="render"></div>
-<div id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="comum.js"></script>
 <script>
 const APTS = ['101', '102', '201', '202'];
 const AMBS = ['Sala', 'Quarto suíte', 'Quarto 01', 'WC', 'Cozinha', 'Área de serviço', 'Varanda'];
 const DISC = ['Elétrica', 'Hidráulica', 'Acabamentos', 'Esquadrias', 'Pintura', 'Outros'];
 const COMODO_RET = { 'Quarto suíte': 'Suíte' };     // ambiente da vistoria -> cômodo no Retrabalhos
 const QUEM = { cliente: 'Assinatura de recebimento - Cliente', resp: 'Responsável TMC Engenharia' };
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ok = r => { if (r.error) throw r.error; return r.data; };
-const msg = e => (e && e.message) || 'Erro inesperado.';
 const k = (a, d) => a + '|' + d;
-const hojeISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
-const fmtData = d => d ? d.split('-').reverse().join('/') : '';
-const fmtDH = d => new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3500); }
-const travar = on => document.body.style.overflow = on ? 'hidden' : '';
 
 let perfil, editor = false, obras = [], guardadas = [];
 // Rascunho da vistoria em andamento fica no aparelho (não se perde se a internet cair)
-const vazio = () => ({ obra: '', unid: '', cliente: '', data: hojeISO(), m: {}, obs: {}, sig: {} });
-let v; try { v = JSON.parse(localStorage.getItem('tmc_vist_rascunho')); } catch (e) {}
-if (!v || !v.m) v = vazio();
-const salva = () => { try { localStorage.setItem('tmc_vist_rascunho', JSON.stringify(v)); } catch (e) {} };
+const mem = memoria('tmc_vist_'), vazio = () => ({ obra: '', unid: '', cliente: '', data: hojeISO(), m: {}, obs: {}, sig: {} });
+let v = mem.lerJSON('rascunho'); if (!v || !v.m) v = vazio();
+const salva = () => mem.gravarJSON('rascunho', v);
 
 // ===== DADOS DA UNIDADE =====
 function unidades() {
@@ -341,12 +240,12 @@ function desenhaSigs() {
 let quem = null, ctx, riscou = false;
 function abreSig(q) {
   quem = q; $('sigTitulo').textContent = q === 'cliente' ? 'Assinatura do cliente' : 'Assinatura do responsável';
-  $('ovSig').hidden = false; travar(true);
+  abrirJanela($('ovSig'));
   const c = $('pad'), r = c.getBoundingClientRect(), dpr = devicePixelRatio || 1;
   c.width = r.width * dpr; c.height = r.height * dpr; ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
   ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1c2a5a'; riscou = false;
 }
-const fechaSig = () => { $('ovSig').hidden = true; travar(false); };
+const fechaSig = () => { fecharJanela($('ovSig')); };
 (() => {
   const c = $('pad'); let ativo = false;
   const pt = e => { const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
@@ -398,31 +297,20 @@ function pendentes() {
   if (!v.sig.resp) r.push('Falta a assinatura do responsável');
   return r;
 }
-function ajusta() { const box = $('scaleBox'), w = box.clientWidth; if (!w) return; const s = Math.min(1, w / 1123); $('scaler').style.transform = `scale(${s})`; box.style.height = (794 * s) + 'px'; }
+const ajusta = () => encaixarFolha($('scaleBox'), $('scaler'), 1123, 794);
 addEventListener('resize', ajusta);
 $('btnPrev').onclick = () => {
   $('paper').innerHTML = papelHTML(); const p = pendentes();
   $('ovnote').innerHTML = p.length ? `<b>Antes de guardar, confira:</b><ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<b style="color:var(--ok)">✓ Tudo preenchido. Pode guardar.</b>';
-  $('ov').hidden = false; travar(true); ajusta(); $('btnFechar').focus();
+  abrirJanela($('ov')); ajusta(); $('btnFechar').focus();
 };
-$('btnFechar').onclick = () => { $('ov').hidden = true; travar(false); };
+$('btnFechar').onclick = () => { fecharJanela($('ov')); };
 
-// Gera o PDF a partir da folha (A4 deitada), no tamanho real
-async function gerarPdf() {
-  const box = $('render'); box.innerHTML = `<article class="paper">${papelHTML()}</article>`;
-  await Promise.all([...box.querySelectorAll('img')].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
-  if (document.fonts) await document.fonts.ready;
-  const canvas = await html2canvas(box.firstElementChild, { scale: 2, backgroundColor: '#ffffff', logging: false });
-  box.innerHTML = '';
-  const doc = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
-  doc.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 297, 210);
-  doc.setProperties({ title: `Vistoria ${v.obra} ${v.unid}`, author: 'TMC Engenharia' });
-  return doc;
-}
-const nomeArquivo = () => `vistoria_${v.obra}_${v.unid}_${v.data}`.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w-]+/g, '_').replace(/_+/g, '_') + '.pdf';
+const gerarPdf = () => pdfDaFolha(papelHTML(), 'paper', true);
+const arquivoVistoria = () => nomeArquivo('vistoria', v.obra, v.unid, v.data);
 $('btnBaixar').onclick = async () => {
   const b = $('btnBaixar'); b.disabled = true; b.textContent = 'Gerando…';
-  try { (await gerarPdf()).save(nomeArquivo()); } catch (e) { toast('Não foi possível gerar o PDF: ' + msg(e)); }
+  try { (await gerarPdf()).save(arquivoVistoria()); } catch (e) { toast('Não foi possível gerar o PDF: ' + msg(e)); }
   b.disabled = false; b.textContent = '⬇ Baixar PDF';
 };
 
@@ -431,9 +319,9 @@ function aviso(titulo, html, botoes) {
   $('msgTitulo').textContent = titulo;
   $('msgBox').innerHTML = `<div class="msg">${html}</div><div class="acoes">${botoes.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}" type="button">${b.txt}</button>`).join('')}</div>`;
   $('msgBox').querySelectorAll('button').forEach(el => el.onclick = () => { fechaAviso(); botoes[+el.dataset.i].fn?.(); });
-  $('ovMsg').hidden = false; travar(true);
+  abrirJanela($('ovMsg'));
 }
-const fechaAviso = () => { $('ovMsg').hidden = true; travar(false); };
+const fechaAviso = () => { fecharJanela($('ovMsg')); };
 
 // ===== GUARDAR NO BANCO =====
 async function guardar(forcar) {
@@ -452,7 +340,7 @@ async function guardar(forcar) {
       total_nc: c.nc, assinatura_cliente: v.sig.cliente, assinatura_responsavel: v.sig.resp
     }).select('id').single());
     id = row.id;
-    const caminho = `${v.data.slice(0, 4)}/${id}_${nomeArquivo()}`;
+    const caminho = `${v.data.slice(0, 4)}/${id}_${arquivoVistoria()}`;
     ok(await sb.storage.from('vistorias').upload(caminho, doc.output('blob'), { contentType: 'application/pdf' }));
     ok(await sb.from('vistorias').update({ pdf: caminho }).eq('id', id));
     v.salvaId = id; v.salvaEm = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); salva(); infos();
@@ -495,7 +383,7 @@ function abreEnviar() {
       <div class="row"><input type="text" data-env="${i}" data-c="resp" placeholder="Responsável (opcional)" spellcheck="false" autocapitalize="words">
       <input type="text" data-env="${i}" data-c="mat" placeholder="Material (opcional)" lang="pt-BR" spellcheck="true"></div></div>`).join('')}
     <button class="btn" id="envOk" type="button">Criar ${envLista.length} pendências</button>`;
-  $('ovEnv').hidden = false; travar(true);
+  abrirJanela($('ovEnv'));
 }
 $('envBox').addEventListener('input', e => { const i = e.target.dataset.env; if (i !== undefined) envLista[+i][e.target.dataset.c] = e.target.value.trim(); });
 $('envBox').addEventListener('click', async e => {
@@ -511,7 +399,7 @@ $('envBox').addEventListener('click', async e => {
     $('envFim').onclick = fechaEnv;
   } catch (err) { toast('Não foi possível criar: ' + msg(err)); b.disabled = false; b.textContent = `Criar ${envLista.length} pendências`; }
 });
-const fechaEnv = () => { $('ovEnv').hidden = true; travar(false); };
+const fechaEnv = () => { fecharJanela($('ovEnv')); };
 $('envFechar').onclick = fechaEnv;
 $('btnEnviar').onclick = abreEnviar;
 
@@ -535,12 +423,7 @@ function listaGuardadas() {
     ${g.pdf ? `<button type="button" data-pdf="${esc(g.pdf)}">📄 PDF</button>` : ''}${perfil.entrega && perfil.entrega !== 'nenhum' ? `<a class="lkent" href="entrega_chaves.html?v=${g.id}">🔑 Entrega</a>` : ''}</div>`).join('') || `<p class="enviado">${guardadas.length ? 'Nenhuma vistoria encontrada.' : 'Nenhuma vistoria guardada ainda.'}</p>`;
 }
 $('busca').oninput = listaGuardadas;
-$('guardadas').addEventListener('click', async e => {
-  const b = e.target.closest('[data-pdf]'); if (!b) return;
-  const w = window.open('', '_blank');   // abre a aba já no clique (o celular bloqueia se abrir depois)
-  try { const d = ok(await sb.storage.from('vistorias').createSignedUrl(b.dataset.pdf, 600)); if (w) w.location = d.signedUrl; else location.href = d.signedUrl; }
-  catch (err) { if (w) w.close(); toast('Não consegui abrir o PDF: ' + msg(err)); }
-});
+$('guardadas').addEventListener('click', e => { const b = e.target.closest('[data-pdf]'); if (b) abrirArquivo('vistorias', b.dataset.pdf); });
 function aba(t) {
   $('abaNova').setAttribute('aria-pressed', t === 'nova'); $('abaGuard').setAttribute('aria-pressed', t === 'guard');
   $('telaNova').style.display = t === 'nova' ? 'flex' : 'none'; $('telaGuard').classList.toggle('oculto', t !== 'guard'); $('telaGuard').style.display = t === 'guard' ? 'flex' : 'none';
@@ -548,20 +431,16 @@ function aba(t) {
   if (t === 'guard') carregaGuardadas();
 }
 $('abaNova').onclick = () => aba('nova'); $('abaGuard').onclick = () => aba('guard');
-$('btnSair').onclick = () => TMC.sair();
 addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (!$('ov').hidden) $('btnFechar').click(); else if (!$('ovSig').hidden) fechaSig(); else if (!$('ovEnv').hidden) fechaEnv(); else if (!$('ovMsg').hidden) fechaAviso(); });
 
 (async () => {
-  perfil = await TMC.exigirAcesso('vistoria');
-  editor = perfil.vistoria === 'editar';
-  $('quem').textContent = perfil.nome;
-  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  ({ perfil, editor } = await TMC.iniciarPagina('vistoria'));
   try { obras = ok(await sb.from('crono_obras').select('nome,blocos').order('nome')); } catch (e) { obras = []; }
   $('obraList').innerHTML = obras.map(o => `<option value="${esc(o.nome)}">`).join('');
   preencheCampos(); desenhaAmbs(); desenhaSigs(); infos();
   if (!editor) { ['btnGuardar', 'btnEnviar', 'btnZerar'].forEach(id => $(id).disabled = true); }
-  $('carregando').remove(); $('sistema').classList.remove('oculto');
-})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+  TMC.mostrarPagina();
+})().catch(TMC.falhaAoAbrir);
 </script>
 </body>
 </html>

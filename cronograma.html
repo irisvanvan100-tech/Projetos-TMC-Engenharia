@@ -5,17 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#7A8B6F">
 <title>Cronograma | TMC Engenharia</title>
+<link rel="stylesheet" href="estilo.css">
 <style>
-:root{--bege:#E3C4A8;--oliva:#7A8B6F;--olivaesc:#5d6d53;--fundo:#F3EFE6;--tinta:#2f352b;--borda:#d8cfbf;--erro:#a3392a}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--fundo);color:var(--tinta);font:15px/1.4 "Segoe UI",system-ui,sans-serif}
-button,input,select{font:inherit}
-.oculto{display:none!important}
-header{background:var(--oliva);color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
-header h1{margin:0;font-size:18px;flex:1}
-header .quem{opacity:.9;font-size:13px}
-header .marca{height:32px;background:#fff;border-radius:6px;padding:2px 6px}
-header a,header button{background:#fff;color:var(--oliva);border:1px solid #fff;border-radius:6px;padding:6px 12px;text-decoration:none;cursor:pointer}
+:root{--olivaesc:#5d6d53}
 .abas{display:flex;gap:6px;padding:10px 12px 0;max-width:900px;margin:auto}
 .abas button{flex:1;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:10px;padding:9px 6px;cursor:pointer}
 .abas button.on{background:var(--oliva);color:#fff;font-weight:600}
@@ -24,35 +16,42 @@ main{padding:12px;max-width:900px;margin:auto}
 select,input{padding:10px;border-radius:10px;border:1px solid var(--borda);width:100%;margin:4px 0;background:#fff}
 .btn{background:var(--oliva);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600;width:100%;margin:4px 0;cursor:pointer}
 .pq{border:1px solid var(--borda);background:#fff;border-radius:8px;padding:5px 9px;cursor:pointer}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.bar{height:10px;background:#e8e2d6;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--oliva)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.bar{height:10px;background:#e8e2d6;border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--oliva)}
 .sech{display:flex;justify-content:space-between;align-items:center;font-weight:700;cursor:pointer;gap:8px}
-.item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #f0ece3;gap:6px}.item span{font-size:13px;flex:1}
-.lt{display:flex;gap:4px}.lt button{width:36px;height:36px;border-radius:8px;border:1px solid #ccc;background:#fff;font-weight:700;cursor:pointer}
-.lt button.on{color:#fff;border:0}.cA{background:#f2c94c!important}.cB{background:#e8a33d!important}.cC{background:#9bbf7a!important}.cD{background:#3f8f4f!important}
+.item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #f0ece3;gap:6px}
+.item span{font-size:13px;flex:1}
+.lt{display:flex;gap:4px}
+.lt button{width:36px;height:36px;border-radius:8px;border:1px solid #ccc;background:#fff;font-weight:700;cursor:pointer}
+.lt button.on{color:#fff;border:0}
+.cA{background:#f2c94c!important}
+.cB{background:#e8a33d!important}
+.cC{background:#9bbf7a!important}
+.cD{background:#3f8f4f!important}
 .big{font-size:28px;font-weight:800;color:var(--olivaesc)}
-.chips{display:flex;gap:6px;overflow:auto;padding-bottom:4px}.chips button{white-space:nowrap;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:20px;padding:7px 12px;cursor:pointer}.chips button.on{background:var(--oliva);color:#fff}
-table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:6px;border-bottom:1px solid #eee;text-align:left}
+.chips{display:flex;gap:6px;overflow:auto;padding-bottom:4px}
+.chips button{white-space:nowrap;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:20px;padding:7px 12px;cursor:pointer}
+.chips button.on{background:var(--oliva);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:6px;border-bottom:1px solid #eee;text-align:left}
 .muted{color:#777;font-size:12px}
 .peso input{width:80px;display:inline;margin:0 4px}
-body.view .editor{display:none!important}
 body.view .lt button:not(.on){display:none}
 body.busy{cursor:progress}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
-button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
-@media(max-width:480px){header{gap:6px;padding:8px 10px}header .quem{display:none}header h1{font-size:16px}header a,header button{padding:5px 9px}}
 </style>
 </head>
 <body>
-<p id="carregando" style="padding:24px">Carregando…</p>
+<p id="carregando">Carregando…</p>
 <div id="sistema" class="oculto">
-  <header>
-    <img class="marca" src="logo.jpg" alt="TMC Engenharia">
-    <h1>Cronograma</h1>
-    <span class="quem" id="quem"></span>
-    <a class="oculto" id="linkInicio" href="index.html">Início</a>
-    <button id="btnSair">Sair</button>
-  </header>
+<header class="topo">
+  <img class="marca" src="logo.jpg" alt="TMC Engenharia">
+  <h1>Cronograma</h1>
+  <span class="quem" id="quem"></span>
+  <a class="btnlink" id="linkInicio" href="index.html" hidden>Início</a>
+  <button id="btnSair" type="button">Sair</button>
+</header>
   <div class="abas">
     <button data-tela="c" class="on">📅 Andamento</button>
     <button data-tela="o">🏗️ Obras</button>
@@ -60,23 +59,16 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   </div>
   <main id="app"></main>
 </div>
-<div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="comum.js"></script>
 <script>
 // Setores e serviços do cronograma (a ordem importa: o banco guarda a posição)
 const SETORES=[{"nome": "SERVIÇOS PRELIMINARES", "itens": ["MOBILIZAÇÃO DE CONTAINER E EQUIPAMENTOS", "LIGAÇÃO PROVISÓRIA DE ÁGUA", "LIGAÇÃO PROVISÓRIA DE ENERGIA", "LIGAÇÃO PROVISÓRIA DE INTERNET", "LIMPEZA DO TERRENO", "GABARITO E LOCAÇÃO DA OBRA"]}, {"nome": "FUNDAÇÃO", "itens": ["ESCAVAÇÃO MÁQUINA BALDRAME", "ESCAVAÇÃO MÁQUINA FOSSA", "ESCAVAÇÃO MÁQUINA FILTRO", "ESCAVAÇÃO MÁQUINA SUMIDOURO", "ALICERCE PEDRAS", "BALDRAME TIJOLO", "CINTA", "ATERRO", "COMPACTAÇÃO", "LONA", "CONTRAPISO"]}, {"nome": "ESTRUTURA E ALVENARIA - TÉRREO", "itens": ["ALVENARIAS: FOSSA, FILTRO E SUMIDOURO", "ALVENARIA MURO", "REBOCO MURO + CHAPIM", "ALVENARIA TÉRREO", "MONTAGEM DE ESCADA PRONTA", "CINTA", "MONTAGEM DE LAJE", "CONCRETAGEM DE LAJE (USINADO)"]}, {"nome": "ESTRUTURA E ALVENARIA - SUPERIOR", "itens": ["ALVENARIA SUPERIOR", "CINTA SUPERIOR", "MONTAGEM DE LAJE SUPERIOR", "CONCRETAGEM DE LAJE (USINADO)"]}, {"nome": "ACABAMENTOS DE ESTRUTURAS E ALVENARIAS", "itens": ["REBOCO INTERNO 3 FIADAS", "REBOCO WC + COZINHA", "REBOCOS VARANDAS", "REGULARIZAÇÃO DE PISOS", "GESSO"]}, {"nome": "COBERTURA", "itens": ["EMPENA", "ESTRUTURA EM MADEIRA", "COBERTA EM TELHA CERÂMICA", "CHUMBAMENTO DE TELHAS"]}, {"nome": "IMPERMEABILIZAÇÃO", "itens": ["CINTA BALDRAME", "BALDRAMES", "3 FIADAS INTERNAS VEDATOP", "3 FIADAS EXTERNAS MASSA VEDATOP", "WCS SUPERIOR", "VARANDAS", "3 FIADAS EXTERNAS VEDATOP APÓS REBOCO"]}, {"nome": "ÁREAS EXTERNAS - PRÉDIO", "itens": ["REBOCO EXTERNO", "CALÇADAS EXTERNAS", "ALVENARIAS DE CAIXAS", "TAMPAS PARA CAIXAS", "MONTAGEM DE CASAS DE GÁS", "CONCRETAGEM DE CALÇADAS EXTERNAS", "CONCRETAGEM DE GARAGENS", "FINALIZAÇÃO DE PASSEIOS COM BRITA", "FINALIZAÇÃO DE PASSEIOS COM ARISCO PARA GRAMA"]}, {"nome": "ACABAMENTOS", "itens": ["ACABAMENTO DE PORTAS E JANELAS", "ASSENTAMENTO DE PEITORIS", "ASSENTAMENTO DE CERÂMICA", "INSTALAÇÃO DE PORTAS E JANELAS", "INSTALAÇÃO DE BANCADAS", "INSTALAÇÃO DE LOUÇAS E METAIS"]}, {"nome": "INSTALAÇÕES", "itens": ["INFRA HIDRÁULICA + DADOS PARA CONTRAPISO", "INFRA ELÉTRICA MUROS", "INFRA ELÉTRICA APTOS + CAIXINHAS", "TOMADAS / INTERRUPTORES / LUMINÁRIAS / FIAÇÃO", "INFRA HIDRÁULICA APTOS", "INFRA GÁS", "CAIXAS D'ÁGUA"]}, {"nome": "VERIFICAÇÕES", "itens": ["ÁGUA", "ENERGIA"]}, {"nome": "PINTURA", "itens": ["PINTURA EXTERNA", "PINTURA INTERNA"]}, {"nome": "EXTRAS", "itens": ["PAISAGISMO: GRAMA", "ACABAMENTOS", "REJUNTE E LIMPEZA", "VISTORIAS"]}];
 const APTS = ['101', '102', '201', '202'], VAL = { A: 25, B: 50, C: 75, D: 100 };
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ok = r => { if (r.error) throw r.error; return r.data; };
-const msg = e => (e && e.message) || 'Erro inesperado.';
-const fmtDH = d => new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3000); }
-const lembrar = (k, v) => { try { v === undefined ? null : localStorage.setItem('tmc_' + k, v); return localStorage.getItem('tmc_' + k); } catch (e) { return null; } };
+const mem = memoria('tmc_');
 // Busca todas as linhas (o Supabase devolve no máximo 1000 por vez)
-async function todos(q) { let r = [], i = 0; for (;;) { const d = ok(await q().range(i, i + 999)); r = r.concat(d); if (d.length < 1000) return r; i += 1000; } }
 
 let perfil, editor = false, obras = [], status = {}, pesos = [], hist = [];
 const st = { tela: 'c', obra: null, bloco: 0, apt: -1, aberta: -1 };
@@ -89,7 +81,7 @@ async function carregar() {
   const ps = ok(await sb.from('crono_pesos').select('*'));
   pesos = SETORES.map((_, i) => { const x = ps.find(p => p.setor === i); return x ? +x.peso : 0; });
   if (!pesos.some(p => p > 0)) pesos = SETORES.map(() => +(100 / SETORES.length).toFixed(2)); // sem pesos cadastrados: todos iguais
-  if (!obras.some(o => o.nome === st.obra)) st.obra = (obras.find(o => o.nome === lembrar('obra')) || obras[0])?.nome ?? null;
+  if (!obras.some(o => o.nome === st.obra)) st.obra = (obras.find(o => o.nome === mem.ler('obra')) || obras[0])?.nome ?? null;
 }
 const registrar = texto => sb.from('historico').insert({ modulo: 'cronograma', usuario: perfil.nome, texto }).then(() => {}, () => {});
 
@@ -101,7 +93,6 @@ const todasCols = o => [...Array(o.blocos * 4).keys()];
 const pI = (m, si, ii, cs) => cs.reduce((a, c) => a + (VAL[m[si + '|' + ii + '|' + c]] || 0), 0) / cs.length;
 const pS = (m, si, cs) => SETORES[si].itens.reduce((a, _, ii) => a + pI(m, si, ii, cs), 0) / SETORES[si].itens.length;
 const pO = (m, cs) => { const t = pesos.reduce((a, b) => a + b, 0) || 1; return SETORES.reduce((a, _, si) => a + pS(m, si, cs) * pesos[si], 0) / t; };
-const nomeApto = c => 'Bloco ' + (Math.floor(c / 4) + 1) + ' apto ' + APTS[c % 4];
 
 // ===== AÇÕES =====
 async function marca(si, ii, L) {
@@ -194,7 +185,7 @@ function rH() {
   return `<div class="card"><b>Histórico do cronograma</b><table>${hist.map(x => `<tr><td>${esc(x.texto)}<div class="muted">${fmtDH(x.criado_em)}${x.usuario ? ' • ' + esc(x.usuario) : ''}</div></td></tr>`).join('') || '<tr><td class="muted">Sem registros.</td></tr>'}</table></div>`;
 }
 function render() {
-  if (st.obra) lembrar('obra', st.obra);
+  if (st.obra) mem.gravar('obra', st.obra);
   $('app').innerHTML = st.tela === 'c' ? rC() : st.tela === 'o' ? rO() : rH();
 }
 async function go(t) {
@@ -205,7 +196,6 @@ async function go(t) {
 
 // ===== EVENTOS =====
 document.querySelectorAll('.abas button').forEach(b => b.onclick = () => go(b.dataset.tela));
-$('btnSair').onclick = () => TMC.sair();
 $('app').addEventListener('click', e => {
   const b = e.target.closest('[data-bloco],[data-apt],[data-abre],[data-marca],[data-edobra],[data-delobra],#btnAddObra'); if (!b) return;
   const d = b.dataset;
@@ -224,15 +214,11 @@ $('app').addEventListener('change', e => {
 });
 
 (async () => {
-  perfil = await TMC.exigirAcesso('cronograma');
-  editor = perfil.cronograma === 'editar';
-  document.body.classList.toggle('view', !editor);
-  $('quem').textContent = perfil.nome + ' (' + (editor ? 'editor' : 'somente visualização') + ')';
-  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  ({ perfil, editor } = await TMC.iniciarPagina('cronograma'));
   await carregar();
-  $('carregando').remove(); $('sistema').classList.remove('oculto');
+  TMC.mostrarPagina();
   render();
-})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+})().catch(TMC.falhaAoAbrir);
 </script>
 </body>
 </html>
