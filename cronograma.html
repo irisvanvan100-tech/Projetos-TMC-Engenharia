@@ -83,14 +83,13 @@ const st = { tela: 'c', obra: null, bloco: 0, apt: -1, aberta: -1 };
 
 // ===== DADOS =====
 async function carregar() {
-  obras = await todos(() => sb.from('obras').select('nome,blocos').order('nome'));
+  obras = await todos(() => sb.from('crono_obras').select('nome,blocos').order('nome'));
   const linhas = await todos(() => sb.from('crono_status').select('obra,setor,item,apto,nivel'));
   status = {}; linhas.forEach(r => { (status[r.obra] ??= {})[r.setor + '|' + r.item + '|' + r.apto] = r.nivel; });
   const ps = ok(await sb.from('crono_pesos').select('*'));
   pesos = SETORES.map((_, i) => { const x = ps.find(p => p.setor === i); return x ? +x.peso : 0; });
   if (!pesos.some(p => p > 0)) pesos = SETORES.map(() => +(100 / SETORES.length).toFixed(2)); // sem pesos cadastrados: todos iguais
-  const ativas = obras.filter(o => o.blocos > 0);
-  if (!ativas.some(o => o.nome === st.obra)) st.obra = (ativas.find(o => o.nome === lembrar('obra')) || ativas[0])?.nome ?? null;
+  if (!obras.some(o => o.nome === st.obra)) st.obra = (obras.find(o => o.nome === lembrar('obra')) || obras[0])?.nome ?? null;
 }
 const registrar = texto => sb.from('historico').insert({ modulo: 'cronograma', usuario: perfil.nome, texto }).then(() => {}, () => {});
 
@@ -125,34 +124,46 @@ async function mudaPeso(si, v) {
   catch (e) { toast('Não foi possível salvar: ' + msg(e)); }
 }
 async function addObra() {
-  const nome = $('on').value.trim(), b = parseInt($('ob').value);
+  const nome = $('on').value.trim().toUpperCase(), b = parseInt($('ob').value);
   if (!nome || !(b > 0)) return toast('Informe o nome e a quantidade de blocos.');
   if (obras.some(o => o.nome.toLowerCase() === nome.toLowerCase())) return toast('Essa obra já existe. Ajuste os blocos dela na lista abaixo.');
   try {
-    ok(await sb.from('obras').insert({ nome, blocos: b }));
+    ok(await sb.from('crono_obras').insert({ nome, blocos: b }));
     obras.push({ nome, blocos: b }); obras.sort((a, c) => a.nome.localeCompare(c.nome));
     st.obra = nome; st.bloco = 0; registrar(`Obra cadastrada: ${nome} (${b} blocos, ${b * 4} aptos)`); go('c');
   } catch (e) { toast('Não foi possível cadastrar: ' + msg(e)); }
 }
 async function editObra(i) {
   const o = obras[i];
-  const nome = prompt('Nome da obra (muda em todo o sistema, inclusive na Prestação de Contas):', o.nome); if (nome === null) return;
-  const b = parseInt(prompt(`Quantidade de blocos de ${nome.trim()} (0 = não aparece no cronograma):`, o.blocos)); if (isNaN(b) || b < 0) return toast('Quantidade inválida.');
-  const novo = nome.trim() || o.nome;
+  const nome = prompt('Nome da obra:', o.nome); if (nome === null) return;
+  const b = parseInt(prompt(`Quantidade de blocos de ${nome.trim() || o.nome}:`, o.blocos)); if (!(b > 0)) return toast('A obra precisa ter pelo menos 1 bloco.');
+  const novo = nome.trim().toUpperCase() || o.nome;
+  if (novo !== o.nome && obras.some(x => x.nome === novo)) return toast('Já existe uma obra com esse nome.');
+  if (b < o.blocos && !confirm(`Diminuir de ${o.blocos} para ${b} blocos esconde o andamento dos blocos ${b + 1} a ${o.blocos}. Continuar?`)) return;
   try {
-    ok(await sb.from('obras').update({ nome: novo, blocos: b }).eq('nome', o.nome));
+    ok(await sb.from('crono_obras').update({ nome: novo, blocos: b }).eq('nome', o.nome));
     if (novo !== o.nome) { status[novo] = status[o.nome]; delete status[o.nome]; if (st.obra === o.nome) st.obra = novo; }
     registrar(`Obra ${o.nome}${novo !== o.nome ? ' renomeada para ' + novo : ''}: ${b} blocos`);
     o.nome = novo; o.blocos = b; if (st.obra === novo && st.bloco >= b) st.bloco = 0;
-    if (!obras.some(x => x.nome === st.obra && x.blocos > 0)) st.obra = obras.find(x => x.blocos > 0)?.nome ?? null;
     render();
   } catch (e) { toast('Não foi possível salvar: ' + msg(e)); }
+}
+async function delObra(i) {
+  const o = obras[i];
+  if (!confirm(`Excluir a obra "${o.nome}" e todo o andamento dela? Isso não pode ser desfeito.`)) return;
+  if (prompt(`Para confirmar, digite o nome da obra: ${o.nome}`)?.trim().toUpperCase() !== o.nome) return toast('Nome diferente. Nada foi excluído.');
+  try {
+    ok(await sb.from('crono_obras').delete().eq('nome', o.nome));
+    obras.splice(i, 1); delete status[o.nome];
+    if (st.obra === o.nome) { st.obra = obras[0]?.nome ?? null; st.bloco = 0; }
+    registrar(`Obra excluída: ${o.nome}`); toast('Obra excluída.'); render();
+  } catch (e) { toast(e && e.code === '23503' ? 'Essa obra tem material lançado no Estoque, por isso não pode ser excluída.' : 'Não foi possível excluir: ' + msg(e)); }
 }
 
 // ===== TELAS =====
 function rC() {
-  const ativas = obras.filter(o => o.blocos > 0);
-  if (!ativas.length) return `<div class="card">Nenhuma obra com blocos cadastrados.${editor ? ' Vá na aba <b>Obras</b> e informe os blocos.' : ''}</div>`;
+  const ativas = obras;
+  if (!ativas.length) return `<div class="card">Nenhuma obra cadastrada.${editor ? ' Vá na aba <b>Obras</b> para cadastrar.' : ''}</div>`;
   const o = ob(), m = mapa(o.nome), cs = cols(), B = o.blocos;
   let h = `<div class="card"><select id="selObra" aria-label="Obra">${ativas.map(x => `<option value="${esc(x.nome)}" ${x.nome === o.nome ? 'selected' : ''}>${esc(x.nome)} (${x.blocos} blocos)</option>`).join('')}</select>
   <div class="chips">${[...Array(B).keys()].map(i => `<button class="${i === st.bloco ? 'on' : ''}" data-bloco="${i}">Bloco ${i + 1} • ${pO(m, [i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 3]).toFixed(0)}%</button>`).join('')}</div>
@@ -176,8 +187,8 @@ function rC() {
 }
 function rO() {
   return `<div class="card editor"><b>Nova obra</b><input id="on" placeholder="Nome da obra"><input id="ob" type="number" min="1" inputmode="numeric" placeholder="Quantidade de blocos (cada bloco = 4 aptos)"><button class="btn" id="btnAddObra">Cadastrar obra</button>
-  <p class="muted">As obras são as mesmas da Prestação de Contas e do Estoque. Uma obra com 0 blocos não aparece no cronograma.</p></div>
-  <div class="card"><b>Obras</b><table>${obras.map((o, i) => `<tr><td>${esc(o.nome)}<div class="muted">${o.blocos ? `${o.blocos} blocos • ${o.blocos * 4} aptos • ${pO(mapa(o.nome), todasCols(o)).toFixed(1)}%` : 'sem blocos (fora do cronograma)'}</div></td><td class="editor" style="text-align:right"><button class="pq" data-edobra="${i}">✏️ Editar</button></td></tr>`).join('') || '<tr><td class="muted">Nenhuma obra.</td></tr>'}</table></div>`;
+</div>
+  <div class="card"><b>Obras</b><table>${obras.map((o, i) => `<tr><td>${esc(o.nome)}<div class="muted">${o.blocos} blocos • ${o.blocos * 4} aptos • ${pO(mapa(o.nome), todasCols(o)).toFixed(1)}%</div></td><td class="editor" style="text-align:right;white-space:nowrap"><button class="pq" data-edobra="${i}">✏️ Editar</button> <button class="pq" data-delobra="${i}" aria-label="Excluir obra">🗑</button></td></tr>`).join('') || '<tr><td class="muted">Nenhuma obra.</td></tr>'}</table></div>`;
 }
 function rH() {
   return `<div class="card"><b>Histórico do cronograma</b><table>${hist.map(x => `<tr><td>${esc(x.texto)}<div class="muted">${fmtDH(x.criado_em)}${x.usuario ? ' • ' + esc(x.usuario) : ''}</div></td></tr>`).join('') || '<tr><td class="muted">Sem registros.</td></tr>'}</table></div>`;
@@ -196,13 +207,14 @@ async function go(t) {
 document.querySelectorAll('.abas button').forEach(b => b.onclick = () => go(b.dataset.tela));
 $('btnSair').onclick = () => TMC.sair();
 $('app').addEventListener('click', e => {
-  const b = e.target.closest('[data-bloco],[data-apt],[data-abre],[data-marca],[data-edobra],#btnAddObra'); if (!b) return;
+  const b = e.target.closest('[data-bloco],[data-apt],[data-abre],[data-marca],[data-edobra],[data-delobra],#btnAddObra'); if (!b) return;
   const d = b.dataset;
   if (d.bloco) { st.bloco = +d.bloco; render(); }
   else if (d.apt) { st.apt = +d.apt; render(); }
   else if (d.abre) { st.aberta = st.aberta === +d.abre ? -1 : +d.abre; render(); }
   else if (d.marca) { const [si, ii, L] = d.marca.split('|'); marca(+si, +ii, L); }
   else if (d.edobra) editObra(+d.edobra);
+  else if (d.delobra) delObra(+d.delobra);
   else if (b.id === 'btnAddObra') addObra();
 });
 $('app').addEventListener('change', e => {

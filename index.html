@@ -43,6 +43,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
   <section id="menu" class="oculto">
     <h1 id="ola"></h1>
     <div id="listaModulos"></div>
+    <p class="erro oculto" id="avisoBanco">Cronograma e Estoque ainda não aparecem porque o banco não foi atualizado. Rode o arquivo banco_de_dados.sql novo no SQL Editor do Supabase.</p>
     <button class="sec" data-sair>Sair</button>
   </section>
 
@@ -73,8 +74,10 @@ async function rotear() {
     if (!(await TMC.sessao())) return mostrar('entrada');
     const p = await TMC.perfil();
     const modulos = TMC.modulos(p);
+    // Banco ainda sem as colunas novas: avisa em vez de esconder os módulos sem explicação
+    if (p && !('cronograma' in p) && !('estoque' in p)) $('avisoBanco').classList.remove('oculto');
     if (!modulos.length) return mostrar('semAcesso');
-    if (modulos.length === 1) return location.replace(TMC.MODULOS[modulos[0]].pagina);
+    if (modulos.length === 1 && $('avisoBanco').classList.contains('oculto')) return location.replace(TMC.MODULOS[modulos[0]].pagina);
     $('ola').textContent = 'Olá, ' + p.nome;
     $('listaModulos').innerHTML = modulos.map(m => `<a class="modulo" href="${TMC.MODULOS[m].pagina}"><b>${TMC.MODULOS[m].titulo}</b><small>${NIVEL[p[m]] || ''}</small></a>`).join('');
     mostrar('menu');

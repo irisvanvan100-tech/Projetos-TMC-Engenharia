@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7A8B6F">
+<title>Entrega de Chaves | TMC Engenharia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+
+/* Layout: uma coluna para usar na obra pelo celular — dados da unidade, um cartão por ambiente (C/NC por disciplina + observações), assinaturas; prévia A4 deitada por cima da tela. */
+:root{
+  --bg:#F3EFE6; --surface:#ffffff; --fg:#2f352b; --muted:#6b7163; --line:#ddd4c4;
+  --accent:#7A8B6F; --accent-strong:#5d6d53; --accent-fg:#ffffff; --chip:#f6f2ea;
+  --ok:#3f8f4f; --ok-bg:#e3f0e1; --nc:#b3261e; --nc-bg:#f8e1de; --danger:#a3392a; --desk:#e7e1d4;
+  --display:"Archivo","Segoe UI",system-ui,sans-serif; --body:"Inter","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
+  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --chip:#2e342a;
+  --ok:#8fcf8f; --ok-bg:#24402a; --nc:#f09a90; --nc-bg:#4a2622; --danger:#e08a7b; --desk:#151813; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
+  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --chip:#2e342a;
+  --ok:#8fcf8f; --ok-bg:#24402a; --nc:#f09a90; --nc-bg:#4a2622; --danger:#e08a7b; --desk:#151813; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--body);margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--accent);color:var(--accent-fg);
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent)}
+header.top img{height:30px;background:#fff;border-radius:6px;padding:2px 6px}
+header.top h1{font:800 18px/1 var(--display);margin:0;flex:1}
+header.top .proto{font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:#ffffff26;border-radius:20px;padding:4px 10px}
+.prog{height:4px;background:#ffffff40;position:absolute;left:0;right:0;bottom:0}.prog i{display:block;height:100%;background:#fff;transition:width .2s}
+
+.wrap{padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.panel h2{font:700 15px/1.2 var(--display);margin:0 0 10px}
+label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.grid2>div{min-width:0}
+@media (max-width:480px){.grid2{grid-template-columns:1fr}}
+input[type=text],input[type=date],select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+textarea{min-height:64px;resize:vertical;text-transform:uppercase}
+textarea::placeholder{text-transform:none}
+.resumo{display:flex;gap:8px;flex-wrap:wrap}
+.resumo span{font-size:12px;border-radius:20px;padding:5px 10px;background:var(--chip);font-variant-numeric:tabular-nums}
+.resumo .c{background:var(--ok-bg);color:var(--ok);font-weight:700}.resumo .nc{background:var(--nc-bg);color:var(--nc);font-weight:700}
+
+.amb{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.amb>header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#20241c;color:#fff}
+.amb>header b{font:700 15px var(--display);flex:1}
+.amb>header .st{font-size:12px;opacity:.9;font-variant-numeric:tabular-nums}
+.amb>header button{border:1px solid #ffffff55;background:transparent;color:#fff;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600}
+.discs{padding:6px 14px 0}
+.disc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.disc span{font-weight:500}
+.seg{display:flex;gap:6px}
+.seg button{min-width:58px;border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button.c[aria-pressed="true"]{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.seg button.nc[aria-pressed="true"]{background:var(--nc-bg);border-color:var(--nc);color:var(--nc)}
+.discs{padding-bottom:8px}
+.disc.temnc{border-bottom:0}
+.discobs{padding:0 0 10px;border-bottom:1px solid var(--line)}
+.discobs textarea{border-color:var(--nc);min-height:56px}
+.discobs .aviso{font-size:12px;color:var(--nc);margin:4px 0 0;font-weight:600}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.sigs{grid-template-columns:1fr}}
+.sig{border:1.5px dashed var(--line);border-radius:12px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface);padding:8px;text-align:center}
+.sig img{max-height:70px;max-width:100%;background:#fff;border-radius:6px}
+.sig small{color:var(--muted);font-size:12px}
+.sig b{font-size:13px}
+
+.btn{border:0;border-radius:10px;padding:12px 14px;font-weight:700;background:var(--accent);color:var(--accent-fg);width:100%}
+.fab{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
+  padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.fab .btn{max-width:760px;margin:0 auto;display:block}
+
+/* janelas por cima: prévia e assinatura */
+.overlay{position:fixed;inset:0;z-index:20;background:var(--desk);display:flex;flex-direction:column}
+.ovbar{display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-fg);
+  padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ovbar b{flex:1;font:800 16px var(--display)}
+.ovbar button{border:0;border-radius:10px;padding:9px 14px;font-weight:700}
+.ovbar .claro{background:#fff;color:#4a5a41}.ovbar .vidro{background:#ffffff26;color:var(--accent-fg)}
+.ovbody{flex:1;overflow:auto;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ovnote{max-width:1123px;margin:0 auto 10px;font-size:13px;color:var(--fg)}
+.ovnote ul{margin:4px 0 0;padding-left:18px;color:var(--nc)}
+#scaleBox{overflow:hidden;max-width:1123px;margin:0 auto}
+.scaler{transform-origin:top left}
+.padbox{flex:1;display:flex;flex-direction:column;gap:10px;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.padbox p{margin:0;color:var(--muted);font-size:13px}
+.acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.acoes{grid-template-columns:1fr}}
+.btn.sec{background:var(--surface);color:var(--accent-strong);border:1.5px solid var(--accent)}
+.btn.perigo{background:var(--surface);color:var(--danger);border:1.5px solid var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.enviado{font-size:12px;color:var(--muted);margin:8px 0 0}
+.dlgbox{max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.pc{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--nc);border-radius:12px;padding:10px 12px}
+.pc .loc{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.pc .d{font-weight:600;text-transform:uppercase;margin:2px 0 8px}
+.pc .row{display:flex;gap:8px}.pc .row>*{flex:1;min-width:0}
+@media (max-width:480px){.pc .row{flex-direction:column}}
+.msg{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px}
+.msg.ok{border-color:var(--ok);color:var(--fg)}
+#pad{flex:1;width:100%;min-height:200px;background:#fff;border:1px solid var(--line);border-radius:12px;touch-action:none}
+
+/* ----- folha do PDF (A4 deitada), sempre papel branco, cores do seu modelo ----- */
+.paper{--ink:#1c1c1c;--red:#c8102e;--soft:#6d6d6d;--rule:#cfcfcf;
+  width:1123px;height:794px;background:#fff;color:var(--ink);box-shadow:0 2px 14px #0000002a;padding:30px 34px 26px;
+  font:11px/1.35 Arial,Helvetica,sans-serif;display:flex;flex-direction:column;color-scheme:light}
+.ph{display:flex;align-items:center;gap:26px;border-bottom:2px solid var(--red);padding-bottom:10px}
+.ph img{width:140px}
+.ph h3{margin:0;font-size:22px;font-weight:700}
+.ph .sub{color:var(--red);font-size:13px;margin-top:4px}
+.pf{display:grid;grid-template-columns:1fr 380px;gap:6px 18px;margin-top:12px}
+.pf div{display:flex;gap:6px;align-items:flex-end;font-size:12px}
+.pf b{white-space:nowrap}
+.pf span{flex:1;border-bottom:1px solid var(--ink);min-height:16px;padding:0 4px 1px;font-size:12px}
+.pl{display:flex;gap:16px;align-items:center;margin:10px 0 6px;font-size:11px}
+.pl em{color:var(--soft);font-style:normal}
+.bx{display:inline-block;width:10px;height:10px;border:1px solid var(--ink);vertical-align:-1px;margin-right:3px;position:relative;background:#fff}
+.bx.on::after{content:"";position:absolute;inset:1.5px;background:var(--ink)}
+.pt{width:100%;border-collapse:collapse;table-layout:fixed}
+.pt th{background:var(--red);color:#fff;font-size:9.5px;padding:7px 3px;font-weight:700;letter-spacing:.01em}
+.pt td{border:1px solid #9a9a9a;height:64px;text-align:center;font-size:10px;vertical-align:middle}
+.pt td.am{background:#1c1c1c;color:#fff;font-weight:700;font-size:11.5px;width:115px}
+.pt td.ob{text-align:left;padding:4px 10px;vertical-align:top;background:repeating-linear-gradient(to bottom,transparent 0 15px,#c9c9c9 15px 16px);background-position:0 4px;
+  font-size:9.5px;line-height:16px;text-transform:uppercase;overflow:hidden}
+.pt td.nc{background:#fde8ea}
+.cc{display:inline-flex;gap:6px;white-space:nowrap}
+.pdecl{margin-top:8px;font-size:11px}
+.psig{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:56px}
+.psig div{text-align:center;font-size:10.5px}
+.psig .ln{border-top:1px solid var(--ink);padding-top:3px}
+.psig img{height:42px;display:block;margin:0 auto 2px}
+.psig .vazio{height:44px}
+
+/* ---- sistema ---- */
+header.top .quem{font-size:12px;opacity:.9}
+header.top a,header.top .sair{background:#fff;color:#4a5a41;border:0;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:600;font-size:13px}
+@media (max-width:480px){header.top .quem{display:none}header.top h1{font-size:16px}}
+.abas{display:flex;gap:6px}
+.abas button{flex:1;border:1px solid var(--accent);background:var(--surface);color:var(--accent-strong);border-radius:10px;padding:9px 6px;font-weight:600}
+.abas button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+#carregando{padding:24px}
+.oculto{display:none!important}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
+#render{position:fixed;left:-20000px;top:0}
+.vinc{border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;padding:10px 12px;margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+.vinc div{min-width:0}
+.vinc small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.vinc b{font-size:14px;overflow-wrap:anywhere}
+.vinc .full{grid-column:1/-1}
+.vinc .lk{border:1px solid var(--accent);background:var(--surface);color:var(--accent-strong);border-radius:9px;padding:7px 10px;font-weight:700;justify-self:start}
+.vinc .novo{grid-column:1/-1;font-size:12px;color:var(--ok);font-weight:600}
+@media (max-width:480px){.vinc{grid-template-columns:1fr}}
+textarea.livre{text-transform:none;min-height:70px}
+.err{color:var(--danger);font-size:13px;margin:8px 0 0;min-height:1em}
+.falta{border-color:var(--danger)!important;box-shadow:0 0 0 1px var(--danger)}
+.gl{display:flex;flex-direction:column;gap:8px}
+.gi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gi .t{flex:1;min-width:200px}
+.gi .t b{display:block}
+.gi .t small{color:var(--muted);font-size:12px}
+.gi button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;font-weight:600;white-space:nowrap}
+
+/* ----- termo (A4 em pé), papel branco, no estilo do modelo ----- */
+.termo{width:794px;height:1123px;background:#fff;color:#111;box-shadow:0 2px 14px #0000002a;padding:120px 82px 80px;
+  font:17px/1.62 Calibri,Carlito,"Segoe UI",Arial,sans-serif;display:flex;flex-direction:column;color-scheme:light}
+.termo .lg{width:190px;align-self:center}
+.termo h3{font-size:22px;font-weight:700;text-align:center;margin:80px 0 50px;letter-spacing:.01em}
+.termo p.corpo{margin:0;text-align:justify}
+.termo .local{text-align:right;margin-top:46px;font-size:15px}
+.termo .ass{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0}
+.termo .ass .ln{width:420px;border-top:1px solid #111;margin-top:60px}
+.termo .ass b{font-size:17px;margin-top:6px;text-align:center}
+.termo .ass small{font-size:13px}
+#scaleBox{max-width:794px}
+</style>
+</head>
+<body>
+<p id="carregando">Carregando…</p>
+<div id="sistema" class="oculto">
+<header class="top">
+  <img src="logo.jpg" alt="TMC Engenharia">
+  <h1>Entrega de Chaves</h1>
+  <span class="quem" id="quem"></span>
+  <a class="oculto" id="linkInicio" href="index.html">Início</a>
+  <button class="sair" id="btnSair" type="button">Sair</button>
+</header>
+
+<main class="wrap">
+  <div class="abas"><button id="abaNova" type="button" aria-pressed="true">🔑 Termo de entrega</button><button id="abaReg" type="button" aria-pressed="false">🗂 Entregas registradas</button></div>
+
+  <div id="telaNova" style="display:flex;flex-direction:column;gap:14px">
+    <section class="panel">
+      <h2 id="tituloForm">Vistoria da unidade</h2>
+      <label class="f" for="selVist">Escolha a vistoria guardada</label>
+      <select id="selVist"></select>
+      <div id="vinc"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Dados da entrega</h2>
+      <label class="f" for="cpf">CPF do cliente *</label>
+      <input type="text" id="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14">
+      <label class="f" for="end">Endereço do apartamento *</label>
+      <textarea id="end" class="livre" lang="pt-BR" spellcheck="true" placeholder="Ex.: Rua Local SDO 18, 414, (Park Vitória), 101 B, Jabuti, Itaitinga - CE"></textarea>
+      <div class="grid2">
+        <div><label class="f" for="cidade">Cidade (para a data do termo)</label><input type="text" id="cidade" value="Itaitinga"></div>
+        <div><label class="f" for="dataEnt">Data da entrega *</label><input type="date" id="dataEnt"></div>
+      </div>
+      <p class="err" id="erro" role="alert"></p>
+      <div class="acoes" style="margin-top:6px">
+        <button class="btn sec" id="btnLimpar" type="button">Limpar</button>
+        <button class="btn" id="btnGuardar" type="button">💾 Guardar entrega</button>
+      </div>
+      <p class="enviado" id="salvoInfo" hidden></p>
+    </section>
+  </div>
+
+  <div id="telaReg" style="display:none;flex-direction:column;gap:14px">
+    <section class="panel"><h2>Entregas registradas</h2><input type="text" id="busca" placeholder="🔍 Buscar por cliente, unidade ou CPF" autocomplete="off"></section>
+    <div class="gl" id="registros"></div>
+  </div>
+</main>
+
+<div class="fab" id="fab"><button class="btn" id="btnPrev" type="button">📄 Ver prévia e gerar PDF</button></div>
+</div>
+
+<div class="overlay" id="ov" role="dialog" aria-modal="true" aria-label="Prévia do termo" hidden>
+  <div class="ovbar"><b>Termo de recebimento</b><button class="claro" id="btnBaixar" type="button">⬇ Baixar PDF</button><button class="vidro" id="btnFechar" type="button">Fechar</button></div>
+  <div class="ovbody"><div class="ovnote" id="ovnote" style="max-width:794px"></div>
+    <div id="scaleBox" style="overflow:hidden;margin:0 auto"><div class="scaler" id="scaler"><article class="termo" id="paper"></article></div></div></div>
+</div>
+<div id="render"></div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const EMPRESA = { nome: 'TMC Engenharia e Serviços Ltda', cnpj: '56.121.081/0001-32' };
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ok = r => { if (r.error) throw r.error; return r.data; };
+const msg = e => (e && e.message) || 'Erro inesperado.';
+const UP = t => String(t || '').toLocaleUpperCase('pt-BR');
+const hojeISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const fmtData = d => d ? d.split('-').reverse().join('/') : '';
+const porExtenso = d => { if (!d) return '____'; const [a, m, dd] = d.split('-'); return `${+dd} de ${MESES[+m - 1]} de ${a}`; };
+const dataLocal = d => { if (!d) return ''; const [a, m, dd] = d.split('-'); return `${dd} / ${MESES[+m - 1]} / de ${a}`; };
+function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3500); }
+const chave = (o, u) => (String(o).trim() + '|' + String(u).trim()).toLowerCase();
+
+// CPF: máscara e conferência dos dígitos verificadores
+const soDig = s => String(s).replace(/\D/g, '').slice(0, 11);
+const mascaraCpf = s => { const d = soDig(s); return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})$/, '$1.$2.$3-$4'); };
+function cpfValido(s) {
+  const d = soDig(s); if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+  const dv = n => { let t = 0; for (let i = 0; i < n; i++) t += +d[i] * (n + 1 - i); const r = (t * 10) % 11; return r === 10 ? 0 : r; };
+  return dv(9) === +d[9] && dv(10) === +d[10];
+}
+
+let perfil, editor = false, vistorias = [], ultimas = new Map(), registros = [], editando = null;
+const f = { vistoria: null, cpf: '', end: '', cidade: 'Itaitinga', data: hojeISO() };
+
+// Vistoria mais nova da mesma unidade (se a vistoria for guardada de novo, a entrega acompanha)
+function maisNova(obra, unidade) { return ultimas.get(chave(obra, unidade)) || null; }
+async function carregar() {
+  vistorias = ok(await sb.from('vistorias').select('id,criado_em,obra,unidade,cliente,data,pdf').order('criado_em', { ascending: false }).limit(2000));
+  ultimas = new Map(); vistorias.forEach(v => { const kk = chave(v.obra, v.unidade); if (!ultimas.has(kk)) ultimas.set(kk, v); });
+  registros = ok(await sb.from('entregas_chaves').select('*').order('criado_em', { ascending: false }).limit(2000));
+}
+function montaSelect() {
+  const l = [...ultimas.values()].sort((a, b) => (a.obra + a.unidade).localeCompare(b.obra + b.unidade, 'pt', { numeric: true }));
+  $('selVist').innerHTML = '<option value="">— escolha —</option>' + l.map(v => `<option value="${v.id}">${esc(v.obra)} • ${esc(v.unidade)} — ${esc(v.cliente)} (vistoria ${fmtData(v.data)})</option>`).join('');
+  if (f.vistoria) $('selVist').value = f.vistoria.id;
+}
+function desenhaVinc() {
+  const v = f.vistoria;
+  if (!v) { $('vinc').innerHTML = vistorias.length ? '' : '<p class="enviado">Nenhuma vistoria guardada ainda. Guarde a vistoria da unidade primeiro, na página Vistoria.</p>'; return; }
+  $('vinc').innerHTML = `<div class="vinc"><div class="full"><small>Cliente (vem da vistoria)</small><b>${esc(UP(v.cliente))}</b></div>
+    <div><small>Empreendimento</small><b>${esc(v.obra)}</b></div><div><small>Unidade</small><b>${esc(v.unidade)}</b></div>
+    <div><small>Data da vistoria</small><b>${fmtData(v.data)}</b></div><div><small>Guardada em</small><b>${new Date(v.criado_em).toLocaleDateString('pt-BR')}</b></div>
+    ${v._trocou ? `<div class="novo">✓ Atualizado com a vistoria mais nova desta unidade.</div>` : ''}
+    ${v.pdf ? `<button class="lk full" type="button" data-pdf="${esc(v.pdf)}">📄 Abrir PDF da vistoria</button>` : ''}</div>`;
+}
+function escolhe(v) {
+  f.vistoria = v;
+  // endereço sugerido: o último usado no mesmo empreendimento
+  if (v && !$('end').value.trim()) { const r = registros.find(x => x.obra.toLowerCase() === v.obra.toLowerCase()); if (r) { $('end').value = r.endereco; f.end = r.endereco; } }
+  desenhaVinc();
+}
+$('selVist').onchange = () => escolhe(vistorias.find(v => v.id == $('selVist').value) || null);
+$('cpf').oninput = () => { const c = $('cpf'); c.value = mascaraCpf(c.value); f.cpf = c.value; c.classList.remove('falta'); };
+$('end').oninput = () => { f.end = $('end').value; $('end').classList.remove('falta'); };
+$('cidade').oninput = () => f.cidade = $('cidade').value;
+$('dataEnt').onchange = () => f.data = $('dataEnt').value;
+$('dataEnt').value = f.data;
+
+// ===== TERMO =====
+function termoHTML(d) {
+  const nome = UP(d.cliente);
+  return `<img class="lg" src="logo.jpg" alt="TMC Engenharia">
+    <h3>TERMO DE RECEBIMENTO DE CHAVES, POSSE E VISTORIA</h3>
+    <p class="corpo"><b>${esc(nome)}</b>, inscrito (a) no cadastro de pessoa física (CPF) sob o nº ${esc(d.cpf)} DECLARA a quem possa interessar, que:
+    Recebeu as chaves do imóvel situado na ${esc(d.endereco)} livre de bens e pessoas, realizada por ${EMPRESA.nome}, inscrito (a) no cadastro de pessoa jurídica (CNPJ)
+    sob o nº ${EMPRESA.cnpj}. Desta forma, o (a) recebedor (a) das chaves, DECLARA que passou a exercer a posse do imóvel, podendo dele usar, gozar/fruir e/ou dispor,
+    conforme desejar. DECLARA ainda que, recebeu o bem nas exatas condições aferidas, ratificadas e aceitas durante a vistoria do imóvel que realizou em ${porExtenso(d.dataVistoria)}.</p>
+    <div class="local">${esc(d.cidade || '')}, ${dataLocal(d.dataEntrega)}.</div>
+    <div class="ass"><div class="ln"></div><b>${esc(nome)}</b><small>Declarante</small>
+      <div class="ln"></div><b>${EMPRESA.nome}</b><small>Declarador</small></div>`;
+}
+const dadosForm = () => ({ cliente: f.vistoria?.cliente || '', cpf: f.cpf, endereco: f.end.trim(), cidade: f.cidade.trim(), dataEntrega: f.data, dataVistoria: f.vistoria?.data, obra: f.vistoria?.obra, unidade: f.vistoria?.unidade });
+function faltas() {
+  const r = [];
+  if (!f.vistoria) r.push(['selVist', 'Escolha a vistoria']);
+  if (!cpfValido(f.cpf)) r.push(['cpf', f.cpf ? 'CPF inválido: confira os números' : 'Falta o CPF']);
+  if (!f.end.trim()) r.push(['end', 'Falta o endereço do apartamento']);
+  if (!f.data) r.push(['dataEnt', 'Falta a data da entrega']);
+  return r;
+}
+function ajusta() { const box = $('scaleBox'), w = box.clientWidth; if (!w) return; const s = Math.min(1, w / 794); $('scaler').style.transform = `scale(${s})`; box.style.height = (1123 * s) + 'px'; }
+addEventListener('resize', ajusta);
+let prevDados = null;
+function abrePrevia(d, avisos) {
+  prevDados = d; $('paper').innerHTML = termoHTML(d);
+  $('ovnote').innerHTML = avisos && avisos.length ? `<b>Antes de imprimir, confira:</b><ul>${avisos.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  $('ov').hidden = false; document.body.style.overflow = 'hidden'; ajusta(); $('btnFechar').focus();
+}
+$('btnPrev').onclick = () => abrePrevia(dadosForm(), faltas().map(x => x[1]));
+$('btnFechar').onclick = () => { $('ov').hidden = true; document.body.style.overflow = ''; };
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ov').hidden) $('btnFechar').click(); });
+
+async function gerarPdf(d) {
+  const box = $('render'); box.innerHTML = `<article class="termo">${termoHTML(d)}</article>`;
+  await Promise.all([...box.querySelectorAll('img')].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+  if (document.fonts) await document.fonts.ready;
+  const canvas = await html2canvas(box.firstElementChild, { scale: 2, backgroundColor: '#ffffff', logging: false });
+  box.innerHTML = '';
+  const doc = new jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+  doc.setProperties({ title: `Termo de recebimento de chaves - ${d.unidade}`, author: 'TMC Engenharia' });
+  return doc;
+}
+$('btnBaixar').onclick = async () => {
+  const d = prevDados;
+  if (!d.cliente || !cpfValido(d.cpf) || !d.endereco) return toast('Complete a vistoria, o CPF e o endereço antes de baixar.');
+  const b = $('btnBaixar'); b.disabled = true; b.textContent = 'Gerando…';
+  try { (await gerarPdf(d)).save(('termo_entrega_chaves_' + d.obra + '_' + d.unidade).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w-]+/g, '_').replace(/_+/g, '_') + '.pdf'); }
+  catch (e) { toast('Não foi possível gerar o PDF: ' + msg(e)); }
+  b.disabled = false; b.textContent = '⬇ Baixar PDF';
+};
+
+// ===== GUARDAR =====
+$('btnGuardar').onclick = async () => {
+  const fl = faltas();
+  ['selVist', 'cpf', 'end', 'dataEnt'].forEach(id => $(id).classList.toggle('falta', fl.some(x => x[0] === id)));
+  if (fl.length) { $('erro').textContent = fl.map(x => x[1]).join(' • ') + '.'; return $(fl[0][0]).focus(); }
+  $('erro').textContent = '';
+  const v = f.vistoria, dados = { vistoria_id: v.id, obra: v.obra, unidade: v.unidade, cpf: f.cpf, endereco: f.end.trim(), cidade: f.cidade.trim() || 'Itaitinga', data_entrega: f.data };
+  const b = $('btnGuardar'); b.disabled = true;
+  try {
+    if (editando) { ok(await sb.from('entregas_chaves').update(dados).eq('id', editando)); Object.assign(registros.find(r => r.id === editando), dados); }
+    else { const r = ok(await sb.from('entregas_chaves').insert({ ...dados, criado_por: perfil.nome }).select().single()); registros.unshift(r); editando = r.id; }
+    $('salvoInfo').hidden = false; $('salvoInfo').textContent = `✓ Entrega guardada. Agora gere o PDF e imprima para o cliente assinar.`;
+    $('tituloForm').textContent = 'Vistoria da unidade (editando entrega guardada)';
+    toast('Entrega guardada.');
+  } catch (e) { $('erro').textContent = 'Não foi possível guardar: ' + msg(e); }
+  b.disabled = false;
+};
+function limpar() {
+  editando = null; Object.assign(f, { vistoria: null, cpf: '', end: '', cidade: 'Itaitinga', data: hojeISO() });
+  $('selVist').value = ''; $('cpf').value = ''; $('end').value = ''; $('cidade').value = 'Itaitinga'; $('dataEnt').value = f.data;
+  $('salvoInfo').hidden = true; $('erro').textContent = ''; $('tituloForm').textContent = 'Vistoria da unidade';
+  document.querySelectorAll('.falta').forEach(x => x.classList.remove('falta')); desenhaVinc();
+}
+$('btnLimpar').onclick = limpar;
+
+// ===== REGISTRADAS =====
+function vistDoRegistro(r) {
+  const nova = maisNova(r.obra, r.unidade) || vistorias.find(v => v.id === r.vistoria_id);
+  return nova ? { ...nova, _trocou: nova.id !== r.vistoria_id } : null;
+}
+function listaReg() {
+  const b = $('busca').value.trim().toLowerCase();
+  const l = registros.map(r => ({ r, v: vistDoRegistro(r) })).filter(({ r, v }) => !b || `${v?.cliente} ${r.obra} ${r.unidade} ${r.cpf}`.toLowerCase().includes(b));
+  $('registros').innerHTML = l.map(({ r, v }) => `<div class="gi"><div class="t"><b>${esc(UP(v?.cliente || '?'))}</b>
+      <small>${esc(r.obra)} • ${esc(r.unidade)} • CPF ${esc(r.cpf)} • entrega ${fmtData(r.data_entrega)} • vistoria ${fmtData(v?.data)}</small></div>
+      <button type="button" data-termo="${r.id}">📄 Termo</button>${v?.pdf ? `<button type="button" data-pdf="${esc(v.pdf)}">Vistoria</button>` : ''}<button type="button" data-abrir="${r.id}">✏️ Abrir</button></div>`).join('')
+    || `<p class="enviado">${registros.length ? 'Nenhuma entrega encontrada.' : 'Nenhuma entrega registrada ainda.'}</p>`;
+}
+$('busca').oninput = listaReg;
+function dadosRegistro(r) { const v = vistDoRegistro(r); return { cliente: v?.cliente || '', cpf: r.cpf, endereco: r.endereco, cidade: r.cidade, dataEntrega: r.data_entrega, dataVistoria: v?.data, obra: r.obra, unidade: r.unidade }; }
+async function abrePdfVistoria(caminho) {
+  const w = window.open('', '_blank');
+  try { const d = ok(await sb.storage.from('vistorias').createSignedUrl(caminho, 600)); if (w) w.location = d.signedUrl; else location.href = d.signedUrl; }
+  catch (e) { if (w) w.close(); toast('Não consegui abrir o PDF: ' + msg(e)); }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-pdf],[data-termo],[data-abrir]'); if (!b) return;
+  if (b.dataset.pdf) abrePdfVistoria(b.dataset.pdf);
+  else if (b.dataset.termo) abrePrevia(dadosRegistro(registros.find(r => r.id == b.dataset.termo)));
+  else if (b.dataset.abrir) {
+    const r = registros.find(x => x.id == b.dataset.abrir); limpar(); editando = r.id;
+    Object.assign(f, { cpf: r.cpf, end: r.endereco, cidade: r.cidade, data: r.data_entrega });
+    $('cpf').value = r.cpf; $('end').value = r.endereco; $('cidade').value = r.cidade; $('dataEnt').value = r.data_entrega;
+    escolhe(vistDoRegistro(r)); $('selVist').value = f.vistoria?.id ?? '';
+    $('tituloForm').textContent = 'Vistoria da unidade (editando entrega guardada)'; aba('nova');
+  }
+});
+function aba(t) {
+  $('abaNova').setAttribute('aria-pressed', t === 'nova'); $('abaReg').setAttribute('aria-pressed', t === 'reg');
+  $('telaNova').style.display = t === 'nova' ? 'flex' : 'none'; $('telaReg').style.display = t === 'reg' ? 'flex' : 'none';
+  $('fab').classList.toggle('oculto', t !== 'nova'); if (t === 'reg') listaReg(); scrollTo(0, 0);
+}
+$('abaNova').onclick = () => aba('nova'); $('abaReg').onclick = () => aba('reg');
+$('btnSair').onclick = () => TMC.sair();
+
+(async () => {
+  perfil = await TMC.exigirAcesso('entrega');
+  editor = perfil.entrega === 'editar';
+  $('quem').textContent = perfil.nome;
+  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  await carregar(); montaSelect();
+  // vindo da página Vistoria (?v=id): já seleciona a vistoria
+  const pid = new URLSearchParams(location.search).get('v');
+  if (pid) { const v = vistorias.find(x => x.id == pid); if (v) { const nova = maisNova(v.obra, v.unidade) || v; $('selVist').value = nova.id; escolhe(nova); } }
+  desenhaVinc();
+  if (!editor) { $('btnGuardar').disabled = true; }
+  $('carregando').remove(); $('sistema').classList.remove('oculto');
+})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+</script>
+</body>
+</html>

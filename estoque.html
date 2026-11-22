@@ -34,6 +34,16 @@ td.n,th.n{text-align:right;white-space:nowrap}
 .muted{color:#777;font-size:12px}
 label.muted{display:block;margin-top:6px}
 .resumo{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.resumo div{flex:1;min-width:140px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:10px 12px}.resumo b{display:block;font-size:20px;color:var(--olivaesc)}
+.seg{display:flex;gap:6px;margin:6px 0 8px}.seg button{flex:1;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:8px;padding:7px;cursor:pointer}.seg button.on{background:var(--oliva);color:#fff;font-weight:600}
+textarea{width:100%;min-height:140px;padding:10px;border-radius:10px;border:1px solid var(--borda);font:inherit;margin:4px 0}
+.conf{border:1px solid var(--borda);border-left:5px solid #ccc;border-radius:10px;padding:8px;margin:6px 0}
+.conf.alta{border-left-color:#3f8f4f}.conf.media{border-left-color:#e8a33d}.conf.baixa{border-left-color:var(--erro)}
+.conf .txt{font-size:12px;color:#555}.conf .tag{font-size:11px;font-weight:700;margin-left:6px}
+.conf .alta-t{color:#3f8f4f}.conf .media-t{color:#b77a1c}.conf .baixa-t{color:var(--erro)}
+.conf .row{align-items:center}.conf .row>.pq{flex:0 0 auto}.conf .q{max-width:110px}
+.valor{background:var(--oliva);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px}.valor span{font-size:13px;opacity:.9}.valor b{display:block;font-size:30px;font-weight:800;margin:2px 0}.valor small{display:block;font-size:12px;opacity:.95}
+.valor details{margin-top:8px}.valor summary{cursor:pointer;font-size:13px}.valor table{color:#fff;margin-top:4px}.valor td{border-color:#ffffff33}.valor .muted{color:#f3efe6}
+tr.tot td{border-top:2px solid var(--borda);background:var(--fundo)}
 .modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:20}.modal img{max-width:95%;max-height:90%;border-radius:6px}
 body.view .editor{display:none!important}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
@@ -74,21 +84,31 @@ const lerNum = v => { v = String(v).trim(); return parseFloat(v.includes(',') ? 
 function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3000); }
 async function todos(q) { let r = [], i = 0; for (;;) { const d = ok(await q().range(i, i + 999)); r = r.concat(d); if (d.length < 1000) return r; i += 1000; } }
 
-let perfil, editor = false, materiais = [], movs = [], obras = [], resumo = {};
-const st = { tela: 's', cat: 'TODAS', busca: '', obraFiltro: '' };
+let perfil, editor = false, materiais = [], movs = [], obras = [], resumo = {}, apelidos = {};
+const lembrar = (k, v) => { try { if (v !== undefined) localStorage.setItem('tmc_est_' + k, v); return localStorage.getItem('tmc_est_' + k) || ''; } catch (e) { return ''; } };
+const st = { tela: 's', cat: 'TODAS', busca: '', obraFiltro: lembrar('obra'), modo: lembrar('modo') || 'um', conf: [] };
 
 // ===== DADOS =====
 async function carregar() {
   [materiais, movs, obras] = await Promise.all([
     todos(() => sb.from('materiais').select('*').order('categoria').order('nome')),
     todos(() => sb.from('movimentos').select('*').order('id')),
-    todos(() => sb.from('obras').select('nome').order('nome'))
+    todos(() => sb.from('crono_obras').select('nome').order('nome'))
   ]);
+  try { (await todos(() => sb.from('material_apelidos').select('texto,material'))).forEach(a => apelidos[a.texto] = a.material); } catch (e) { /* tabela ainda não criada: segue sem aprendizado */ }
+  if (st.obraFiltro && !obras.some(o => o.nome === st.obraFiltro)) st.obraFiltro = '';
+  if (!st.obraFiltro && obras.length === 1) st.obraFiltro = obras[0].nome;
   calcula();
 }
+// Saldo de um material numa obra
+const saldoObra = (material, obra) => movs.filter(m => m.material === material && m.obra === obra).reduce((a, m) => a + (m.tipo === 'E' ? +m.quantidade : -m.quantidade), 0);
 // Saldo, último preço e preço médio de cada material (opcionalmente só de uma obra)
+// Custo médio de cada material: média ponderada de TODAS as entradas com preço (qualquer obra)
+let custo = {};
+const medio = nome => { const c = custo[nome]; return c && c.q ? c.v / c.q : null; };
 function calcula() {
-  resumo = {};
+  resumo = {}; custo = {};
+  movs.forEach(m => { if (m.tipo === 'E' && +m.preco > 0) { const c = (custo[m.material] ??= { q: 0, v: 0 }); c.q += +m.quantidade; c.v += m.quantidade * m.preco; } });
   movs.forEach(m => {
     if (st.obraFiltro && m.obra !== st.obraFiltro) return;
     const r = (resumo[m.material] ??= { saldo: 0, ent: 0, valor: 0, ult: null });
@@ -96,7 +116,71 @@ function calcula() {
     if (m.tipo === 'E') { r.saldo += q; if (+m.preco > 0) { r.ent += q; r.valor += q * m.preco; r.ult = +m.preco; } }
     else r.saldo -= q;
   });
+  Object.entries(resumo).forEach(([nome, r]) => { const p = medio(nome); r.medio = p; r.emEstoque = r.saldo > 0 && p != null ? r.saldo * p : 0; });
 }
+// ===== IDENTIFICAÇÃO DE MATERIAIS PELO NOME (sem custo, roda no navegador) =====
+const UNID = 'x|un|und|unid|unids|unidades?|p[çc]s?|pe[çc]as?|m|mts?|metros?|cx|caixas?|rl|rolos?|br|barras?|sc|sacos?|kg|lt?s?|gl|gal[aã]o|latas?|pct|pacotes?|jg|jogos?';
+const NUMQ = '(\\d+(?:[.,]\\d+)?)';
+const RE_INICIO = new RegExp('^' + NUMQ + '\\s*(?:(?:' + UNID + ')\\.?)?\\s+(.+)$', 'i');
+const RE_FIM = new RegExp('^(.+?)[\\s:=–-]+' + NUMQ + '\\s*(?:(?:' + UNID + ')\\.?)?$', 'i');
+const PARADAS = new Set(['de', 'da', 'do', 'das', 'dos', 'com', 'para', 'p', 'e', 'c', 'x', 'pvc', 'sold', 'soldavel', 'mm', 'cm', 'un', 'und', 'unid', 'tipo', 'ref']);
+const SINONIMOS = { tubo: 'cano', tubos: 'cano', canos: 'cano', fio: 'cabo', fios: 'cabo', tomadas: 'tomada', lampada: 'plafon', interruptores: 'interruptor', disj: 'disjuntor', reg: 'registro', jlh: 'joelho', red: 'reducao', telha: 'telha', ceramica: 'ceramica', argamassa: 'argamassa', massa: 'massa' };
+function normaliza(t) {
+  return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/(\w)['’´`](\w)/g, '$1$2')
+    .replace(/(\d),(\d)/g, '$1.$2').replace(/(\d)([a-z])/g, '$1 $2').replace(/([a-z])(\d)/g, '$1 $2')
+    .replace(/[^a-z0-9./ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function tokens(t) {
+  return normaliza(t).split(' ').filter(w => w && !PARADAS.has(w)).map(w => {
+    if (SINONIMOS[w]) return SINONIMOS[w];
+    if (/^[a-z]{4,}s$/.test(w)) w = w.slice(0, -1);          // plural simples: joelhos -> joelho
+    return SINONIMOS[w] || w;
+  });
+}
+const ehNum = w => /^[0-9./]+$/.test(w);
+function lev(a, b) {                                          // distância de edição (erros de digitação)
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function parecido(q, n) {
+  if (q === n) return 1;
+  if (ehNum(q) || ehNum(n)) return 0;                        // número só vale se for igual
+  if (q.length >= 3 && n.length >= 3 && (n.startsWith(q) || q.startsWith(n))) return 0.8;
+  if (q.length >= 4 && n.length >= 4 && 1 - lev(q, n) / Math.max(q.length, n.length) >= 0.75) return 0.7;
+  return 0;
+}
+function pontua(qt, nt) {
+  if (!qt.length || !nt.length) return 0;
+  let soma = 0, faltaNum = 0;
+  qt.forEach(q => { const b = Math.max(...nt.map(n => parecido(q, n))); soma += b; if (ehNum(q) && b < 1) faltaNum++; });
+  let s = 2 * soma / (qt.length + nt.length);
+  s *= Math.pow(0.45, faltaNum);                              // medida digitada que o material não tem
+  s *= Math.pow(0.85, nt.filter(n => ehNum(n) && !qt.includes(n)).length); // medida do material que não foi digitada
+  return s;
+}
+const indice = () => materiais.map(m => ({ nome: m.nome, t: tokens(m.nome) }));
+function identifica(texto, idx) {
+  const chave = normaliza(texto);
+  if (apelidos[chave] && materiais.some(m => m.nome === apelidos[chave])) return { mat: apelidos[chave], score: 1, aprendido: true, alts: [] };
+  const qt = tokens(texto);
+  const r = idx.map(m => ({ nome: m.nome, s: pontua(qt, m.t) })).sort((a, b) => b.s - a.s);
+  const best = r[0] && r[0].s >= 0.4 ? r[0] : null;
+  return { mat: best ? best.nome : '', score: best ? best.s : 0, alts: r.slice(0, 5).filter(x => x.s > 0.2).map(x => x.nome) };
+}
+function lerLista(txt) {
+  const idx = indice();
+  return txt.split(/\r?\n/).map(l => l.replace(/^[\s•*·>-]+/, '').replace(/\t+/g, ' ').trim()).filter(Boolean).map(l => {
+    let q = null, nome = l, m;
+    if ((m = l.match(RE_INICIO))) { q = lerNum(m[1]); nome = m[2]; }
+    else if ((m = l.match(RE_FIM))) { q = lerNum(m[2]); nome = m[1]; }
+    return { txt: l, nome, q, preco: '', ...identifica(nome, idx) };
+  });
+}
+const nivel = c => !c.mat ? 'baixa' : c.aprendido || c.score >= 0.75 ? 'alta' : c.score >= 0.5 ? 'media' : 'baixa';
+
 const registrar = texto => sb.from('historico').insert({ modulo: 'estoque', usuario: perfil.nome, texto }).then(() => {}, () => {});
 
 // Foto da nota: reduz para no máximo 1600px antes de enviar
@@ -111,11 +195,12 @@ function comprime(f) {
 
 // ===== AÇÕES =====
 async function salvaMov() {
-  const tipo = $('mt').value, material = $('mm').value.trim(), q = lerNum($('mq').value), obra = $('mo').value || null;
+  const tipo = $('mt').value, material = $('mm').value.trim(), q = lerNum($('mq').value), obra = $('mo').value;
   const mat = materiais.find(x => x.nome.toLowerCase() === material.toLowerCase());
   if (!mat) return toast(material ? 'Material não cadastrado. Use "+ Novo material" primeiro.' : 'Escolha o material.');
+  if (!obra) return toast('Escolha a obra.');
   if (!(q > 0)) return toast('Informe a quantidade.');
-  if (tipo === 'S' && (resumo[mat.nome]?.saldo ?? 0) - q < 0 && !st.obraFiltro && !confirm(`O saldo de ${mat.nome} vai ficar negativo. Lançar mesmo assim?`)) return;
+  if (tipo === 'S') { const s = saldoObra(mat.nome, obra); if (s - q < 0 && !confirm(`${obra} tem só ${num(s)} de ${mat.nome}. O saldo vai ficar negativo. Lançar mesmo assim?`)) return; }
   const bt = $('btnSalvar'); bt.disabled = true; bt.textContent = 'Salvando…';
   let foto = null;
   try {
@@ -132,12 +217,55 @@ async function salvaMov() {
       nota: tipo === 'E' ? $('mnf').value.trim() : ''
     };
     movs.push(ok(await sb.from('movimentos').insert(novo).select().single()));
-    calcula(); toast((tipo === 'E' ? 'Entrada' : 'Saída') + ' salva.');
+    lembrar('obraLanc', obra); calcula(); toast((tipo === 'E' ? 'Entrada' : 'Saída') + ' salva em ' + obra + '.');
     render();
   } catch (e) {
     if (foto) sb.storage.from('notas').remove([foto]);
     toast('Não foi possível salvar: ' + msg(e)); bt.disabled = false; bt.textContent = 'Salvar';
   }
+}
+async function salvaLista() {
+  const tipo = $('mt').value, obra = $('mo').value, rows = st.conf;
+  if (!obra) return toast('Escolha a obra.');
+  if (!rows.length) return toast('Escreva a lista e toque em "Identificar materiais".');
+  const ruins = rows.map((c, i) => (!c.mat || !(c.q > 0)) ? i + 1 : 0).filter(Boolean);
+  if (ruins.length) return toast(`Confira a(s) linha(s) ${ruins.join(', ')}: falta material ou quantidade.`);
+  if (tipo === 'S') {
+    const tot = {}; rows.forEach(c => tot[c.mat] = (tot[c.mat] || 0) + c.q);
+    const neg = Object.entries(tot).filter(([m, q]) => saldoObra(m, obra) - q < 0).map(([m, q]) => `${m} (tem ${num(saldoObra(m, obra))}, saindo ${num(q)})`);
+    if (neg.length && !confirm(`O saldo em ${obra} vai ficar negativo em:\n${neg.join('\n')}\n\nLançar mesmo assim?`)) return;
+  }
+  const bt = $('btnSalvarLista'); bt.disabled = true; bt.textContent = 'Salvando…';
+  let foto = null;
+  try {
+    const arq = tipo === 'E' && $('mf').files[0];
+    if (arq) { foto = new Date().toISOString().slice(0, 7) + '/' + Date.now() + '.jpg'; ok(await sb.storage.from('notas').upload(foto, await comprime(arq), { contentType: 'image/jpeg' })); }
+    const forn = tipo === 'E' ? $('mfo').value.trim() : '', nota = tipo === 'E' ? $('mnf').value.trim() : '';
+    const novos = rows.map(c => ({ tipo, material: c.mat, quantidade: c.q, obra, usuario: perfil.nome, foto, preco: tipo === 'E' ? (lerNum(c.preco) || 0) : 0, fornecedor: forn, nota }));
+    movs.push(...ok(await sb.from('movimentos').insert(novos).select()));
+    // aprende o que foi digitado -> material escolhido
+    const aprender = rows.filter(c => normaliza(c.nome) !== normaliza(c.mat)).map(c => ({ texto: normaliza(c.nome), material: c.mat, atualizado_em: new Date().toISOString() }));
+    const unicos = Object.values(Object.fromEntries(aprender.map(a => [a.texto, a])));
+    if (unicos.length) sb.from('material_apelidos').upsert(unicos).then(r => { if (!r.error) unicos.forEach(a => apelidos[a.texto] = a.material); });
+    registrar(`${tipo === 'E' ? 'Entrada' : 'Saída'} em lista: ${rows.length} itens em ${obra}${nota ? ' (NF ' + nota + ')' : ''}`);
+    st.conf = []; lembrar('obraLanc', obra); calcula();
+    toast(`${rows.length} ${rows.length === 1 ? 'item salvo' : 'itens salvos'} em ${obra}.`); render();
+  } catch (e) {
+    if (foto) sb.storage.from('notas').remove([foto]);
+    toast('Não foi possível salvar: ' + msg(e)); bt.disabled = false; bt.textContent = 'Salvar todos';
+  }
+}
+async function novoMatLinha(i) {
+  const c = st.conf[i];
+  const nome = (prompt('Nome do novo material:', c.nome.toUpperCase()) || '').trim().toUpperCase(); if (!nome) return;
+  if (materiais.some(m => m.nome === nome)) { c.mat = nome; c.score = 1; return desenhaConf(); }
+  const categoria = (prompt('Categoria:', 'OUTROS') || 'OUTROS').trim().toUpperCase();
+  try {
+    materiais.push(ok(await sb.from('materiais').insert({ nome, categoria }).select().single()));
+    materiais.sort((a, b) => a.categoria.localeCompare(b.categoria) || a.nome.localeCompare(b.nome));
+    registrar(`Material cadastrado: ${nome} (${categoria})`);
+    c.mat = nome; c.score = 1; desenhaConf();
+  } catch (e) { toast('Não foi possível cadastrar: ' + msg(e)); }
 }
 async function novoMat() {
   const nome = (prompt('Nome do novo material:') || '').trim().toUpperCase(); if (!nome) return;
@@ -155,7 +283,7 @@ async function delMov(id) {
   if (!confirm(`Excluir o lançamento "${m.tipo === 'E' ? 'Entrada' : 'Saída'} de ${num(m.quantidade)} × ${m.material}"?`)) return;
   try {
     ok(await sb.from('movimentos').delete().eq('id', id));
-    if (m.foto) sb.storage.from('notas').remove([m.foto]);
+    if (m.foto && !movs.some(x => x.id !== id && x.foto === m.foto)) sb.storage.from('notas').remove([m.foto]); // foto pode ser de vários itens da mesma nota
     movs = movs.filter(x => x.id !== id); calcula();
     registrar(`Excluiu ${m.tipo === 'E' ? 'entrada' : 'saída'}: ${num(m.quantidade)} × ${m.material}${m.obra ? ' (' + m.obra + ')' : ''}, lançada em ${fmtDH(m.criado_em)} por ${m.usuario || '?'}`);
     render();
@@ -167,42 +295,78 @@ async function verFoto(caminho) {
 }
 
 // ===== TELAS =====
-const selObras = (id, vazio) => `<select id="${id}" aria-label="Obra"><option value="">${vazio}</option>${obras.map(o => `<option value="${esc(o.nome)}" ${id === 'fo' && o.nome === st.obraFiltro ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select>`;
+const selObras = (id, vazio, sel) => `<select id="${id}" aria-label="Obra"><option value="">${vazio}</option>${obras.map(o => `<option value="${esc(o.nome)}" ${o.nome === sel ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select>`;
 function formLanc() {
   return `<div class="card editor"><b>Lançar movimento</b>
-  <div class="row"><select id="mt" aria-label="Tipo"><option value="E">⬆️ Entrada (chegou)</option><option value="S">⬇️ Saída (usado)</option></select>${selObras('mo', 'Obra (opcional)')}</div>
-  <input list="dl" id="mm" placeholder="Material (digite para buscar)" autocomplete="off"><datalist id="dl">${materiais.map(m => `<option value="${esc(m.nome)}">${esc(m.categoria)}</option>`).join('')}</datalist>
-  <input id="mq" inputmode="decimal" placeholder="Quantidade">
-  <div id="ent"><div class="row"><input id="mp" inputmode="decimal" placeholder="Preço unitário R$"><input id="mnf" placeholder="Nº da nota"></div><input id="mfo" placeholder="Fornecedor">
+  <div class="row"><select id="mt" aria-label="Tipo"><option value="E">⬆️ Entrada (chegou)</option><option value="S">⬇️ Saída (usado)</option></select>${selObras('mo', 'Escolha a obra…', st.obraFiltro || lembrar('obraLanc'))}</div>
+  <div class="seg"><button data-modo="um" class="${st.modo === 'um' ? 'on' : ''}">Um item</button><button data-modo="lista" class="${st.modo === 'lista' ? 'on' : ''}">Lista de itens</button></div>
+  ${st.modo === 'um' ? `<input list="dl" id="mm" placeholder="Material (digite para buscar)" autocomplete="off"><datalist id="dl">${materiais.map(m => `<option value="${esc(m.nome)}">${esc(m.categoria)}</option>`).join('')}</datalist>
+  <input id="mq" inputmode="decimal" placeholder="Quantidade">` : `<label class="muted" for="ml">Um item por linha, com a quantidade no começo ou no fim. Ex.: <i>10 laje</i> • <i>cano 25 - 6</i> • <i>cabo 2,5 azul 100</i></label>
+  <textarea id="ml" placeholder="10 laje&#10;cano 25mm 6&#10;joelho 25 - 20&#10;cabo 2,5 azul 100">${esc(st.lista || '')}</textarea>
+  <button class="btn sec" id="btnIdent">🔎 Identificar materiais</button><div id="conf"></div>`}
+  <div id="ent"><div class="row">${st.modo === 'um' ? '<input id="mp" inputmode="decimal" placeholder="Preço unitário R$">' : ''}<input id="mnf" placeholder="Nº da nota"></div><input id="mfo" placeholder="Fornecedor">
   <label class="muted" for="mf">Foto da nota fiscal (opcional)</label><input id="mf" type="file" accept="image/*" capture="environment"></div>
-  <button class="btn" id="btnSalvar">Salvar</button></div>`;
+  ${st.modo === 'um' ? '<button class="btn" id="btnSalvar">Salvar</button>' : '<button class="btn" id="btnSalvarLista">Salvar todos</button>'}</div>`;
+}
+function desenhaConf() {
+  const el = $('conf'); if (!el) return;
+  if (!st.conf.length) { el.innerHTML = ''; return; }
+  const ent = $('mt') && $('mt').value === 'E', seguros = st.conf.filter(c => nivel(c) === 'alta').length;
+  const ROT = { alta: '✓ identificado', media: '? confira', baixa: '✗ não encontrado' };
+  el.innerHTML = `<p class="muted" style="margin:8px 0 2px"><b>${st.conf.length} itens</b> • ${seguros} identificados com segurança. Confira os amarelos e vermelhos.</p>` + st.conf.map((c, i) => {
+    const n = nivel(c), sug = c.alts.filter(a => a !== c.mat);
+    return `<div class="conf ${n}"><div class="txt">${i + 1}. “${esc(c.txt)}” <span class="tag ${n}-t">${c.aprendido ? '✓ já conhecido' : ROT[n]}</span></div>
+    <select data-ci="${i}" data-campo="mat" aria-label="Material da linha ${i + 1}"><option value="">— escolha o material —</option>
+      ${c.mat ? `<option value="${esc(c.mat)}" selected>${esc(c.mat)}</option>` : ''}
+      ${sug.length ? `<optgroup label="Parecidos">${sug.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('')}</optgroup>` : ''}
+      <optgroup label="Todos os materiais">${materiais.map(m => `<option value="${esc(m.nome)}">${esc(m.nome)}</option>`).join('')}</optgroup></select>
+    <div class="row"><input class="q" data-ci="${i}" data-campo="q" inputmode="decimal" placeholder="Qtd." value="${c.q ?? ''}" aria-label="Quantidade da linha ${i + 1}">
+    ${ent ? `<input data-ci="${i}" data-campo="preco" inputmode="decimal" placeholder="Preço un. R$" value="${esc(c.preco)}" aria-label="Preço da linha ${i + 1}">` : ''}
+    <button class="pq" data-novomat="${i}" title="Cadastrar como material novo">+ Novo</button><button class="pq" data-tiralinha="${i}" aria-label="Tirar linha ${i + 1}">✕</button></div></div>`;
+  }).join('');
 }
 function linhasSaldo() {
   const b = st.busca.toLowerCase();
   const lista = materiais.filter(m => (st.cat === 'TODAS' || m.categoria === st.cat) && m.nome.toLowerCase().includes(b));
-  return lista.map(m => {
-    const r = resumo[m.nome], s = r ? r.saldo : 0;
-    return `<tr><td>${esc(m.nome)}<div class="muted">${esc(m.categoria)}</div></td><td class="n ${s < 0 ? 'neg' : ''}">${num(s)}</td><td class="n">${r && r.ult != null ? brl(r.ult) + '<div class="muted">méd. ' + brl(r.valor / r.ent) + '</div>' : '–'}</td></tr>`;
-  }).join('') || '<tr><td colspan="3" class="muted">Nenhum material encontrado.</td></tr>';
+  let total = 0;
+  const linhas = lista.map(m => {
+    const r = resumo[m.nome], s = r ? r.saldo : 0, p = medio(m.nome), v = r ? r.emEstoque : 0; total += v;
+    return `<tr><td>${esc(m.nome)}<div class="muted">${esc(m.categoria)}</div></td><td class="n ${s < 0 ? 'neg' : ''}">${num(s)}</td>
+      <td class="n">${v ? '<b>' + brl(v) + '</b>' : s > 0 && p == null ? '<span class="muted">sem preço</span>' : '–'}${p != null ? '<div class="muted">méd. ' + brl(p) + '/un</div>' : ''}</td></tr>`;
+  }).join('');
+  if (!linhas) return '<tr><td colspan="3" class="muted">Nenhum material encontrado.</td></tr>';
+  const filtrado = st.cat !== 'TODAS' || st.busca;
+  return linhas + `<tr class="tot"><td colspan="2"><b>Valor ${filtrado ? 'desta lista' : 'total em estoque'}</b></td><td class="n"><b>${brl(total)}</b></td></tr>`;
 }
 function rS() {
   const cats = ['TODAS', ...new Set(materiais.map(m => m.categoria))];
   const comSaldo = materiais.filter(m => (resumo[m.nome]?.saldo ?? 0) > 0).length, neg = materiais.filter(m => (resumo[m.nome]?.saldo ?? 0) < 0).length;
-  const gasto = Object.values(resumo).reduce((a, r) => a + r.valor, 0);
-  return formLanc() + `<div class="resumo"><div>Materiais com saldo<b>${comSaldo}</b></div><div>Saldo negativo<b class="${neg ? 'neg' : ''}">${neg}</b></div><div>Total comprado${st.obraFiltro ? ' (obra)' : ''}<b>${brl(gasto)}</b></div></div>
-  <div class="card">${selObras('fo', 'Todas as obras')}
+  const gasto = Object.values(resumo).reduce((a, r) => a + r.valor, 0), valorEst = Object.values(resumo).reduce((a, r) => a + r.emEstoque, 0);
+  const semPreco = materiais.filter(m => (resumo[m.nome]?.saldo ?? 0) > 0 && medio(m.nome) == null).length;
+  const porCat = {}; materiais.forEach(m => { const v = resumo[m.nome]?.emEstoque || 0; if (v) porCat[m.categoria] = (porCat[m.categoria] || 0) + v; });
+  const cats3 = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
+  return formLanc() + `<div class="valor"><span>Valor do estoque${st.obraFiltro ? ' • ' + esc(st.obraFiltro) : ' • todas as obras'}</span><b>${brl(valorEst)}</b>
+    ${semPreco ? `<small>⚠️ ${semPreco} ${semPreco === 1 ? 'material com saldo não tem' : 'materiais com saldo não têm'} preço de compra e ${semPreco === 1 ? 'não entra' : 'não entram'} no valor.</small>` : ''}
+    ${cats3.length > 1 ? `<details><summary>Por categoria</summary><table>${cats3.map(([c, v]) => `<tr><td>${esc(c)}</td><td class="n">${brl(v)}</td><td class="n muted">${(v / valorEst * 100).toFixed(0)}%</td></tr>`).join('')}</table></details>` : ''}</div>
+  <div class="resumo"><div>Total comprado${st.obraFiltro ? ' (obra)' : ''}<b>${brl(gasto)}</b></div><div>Materiais com saldo<b>${comSaldo}</b></div><div>Saldo negativo<b class="${neg ? 'neg' : ''}">${neg}</b></div></div>
+  <div class="card"><label class="muted" for="fo">Mostrar estoque de</label>${selObras('fo', 'Todas as obras (soma)', st.obraFiltro)}
   <input id="busca" placeholder="🔍 Buscar material" value="${esc(st.busca)}" autocomplete="off">
   <div class="chips">${cats.map(c => `<button class="${c === st.cat ? 'on' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}</div>
   <button class="btn sec editor" id="btnNovoMat">+ Novo material</button>
-  <table><thead><tr><th>Material</th><th class="n">Saldo</th><th class="n">Últ. preço</th></tr></thead><tbody id="tabSaldo">${linhasSaldo()}</tbody></table></div>`;
+  <table><thead><tr><th>Material</th><th class="n">Saldo</th><th class="n">Valor</th></tr></thead><tbody id="tabSaldo">${linhasSaldo()}</tbody></table></div>`;
 }
 function rM() {
   const lista = movs.filter(m => !st.obraFiltro || m.obra === st.obraFiltro).slice().reverse().slice(0, 200);
-  return formLanc() + `<div class="card">${selObras('fo', 'Todas as obras')}<b>Últimos lançamentos</b><table>${lista.map(m => `<tr><td>${m.tipo === 'E' ? '⬆️' : '⬇️'} ${num(m.quantidade)} × ${esc(m.material)}
-    <div class="muted">${fmtDH(m.criado_em)}${m.usuario ? ' • ' + esc(m.usuario) : ''}${m.obra ? ' • ' + esc(m.obra) : ''}${m.fornecedor ? ' • ' + esc(m.fornecedor) : ''}${m.nota ? ' • NF ' + esc(m.nota) : ''}${+m.preco ? ' • ' + brl(m.preco) + '/un' : ''}</div></td>
+  return formLanc() + `<div class="card"><label class="muted" for="fo">Mostrar estoque de</label>${selObras('fo', 'Todas as obras (soma)', st.obraFiltro)}<b>Últimos lançamentos</b><table>${lista.map(m => `<tr><td>${m.tipo === 'E' ? '⬆️' : '⬇️'} ${num(m.quantidade)} × ${esc(m.material)}${!st.obraFiltro ? `<div class="muted"><b>${m.obra ? esc(m.obra) : 'sem obra'}</b></div>` : ''}
+    <div class="muted">${fmtDH(m.criado_em)}${m.usuario ? ' • ' + esc(m.usuario) : ''}${m.fornecedor ? ' • ' + esc(m.fornecedor) : ''}${m.nota ? ' • NF ' + esc(m.nota) : ''}${+m.preco ? ' • ' + brl(m.preco) + '/un' : ''}</div></td>
     <td>${m.foto ? `<button class="pq" data-foto="${esc(m.foto)}">🧾 Nota</button>` : ''}</td><td class="editor"><button class="pq" data-del="${m.id}" aria-label="Excluir">🗑</button></td></tr>`).join('') || '<tr><td class="muted">Nada lançado ainda.</td></tr>'}</table></div>`;
 }
-function render() { $('app').innerHTML = st.tela === 's' ? rS() : rM(); }
+function render() {
+  const ml = $('ml'); if (ml) st.lista = ml.value;
+  if (!obras.length) { $('app').innerHTML = '<div class="card">Nenhuma obra cadastrada. As obras são cadastradas no <b>Cronograma</b> (aba Obras).</div>'; return; }
+  $('app').innerHTML = st.tela === 's' ? rS() : rM();
+  desenhaConf();
+}
 function go(t) { st.tela = t; document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('on', b.dataset.tela === t)); render(); }
 
 // ===== EVENTOS =====
@@ -216,10 +380,22 @@ $('app').addEventListener('click', e => {
   else if (b.dataset.del) delMov(+b.dataset.del);
   else if (b.id === 'btnNovoMat') novoMat();
   else if (b.id === 'btnSalvar') salvaMov();
+  else if (b.dataset.modo) { st.modo = b.dataset.modo; lembrar('modo', st.modo); render(); }
+  else if (b.id === 'btnIdent') { st.lista = $('ml').value; st.conf = lerLista(st.lista); if (!st.conf.length) toast('Escreva pelo menos um item.'); desenhaConf(); }
+  else if (b.id === 'btnSalvarLista') salvaLista();
+  else if (b.dataset.novomat) novoMatLinha(+b.dataset.novomat);
+  else if (b.dataset.tiralinha) { st.conf.splice(+b.dataset.tiralinha, 1); desenhaConf(); }
 });
 $('app').addEventListener('change', e => {
-  if (e.target.id === 'mt') $('ent').classList.toggle('oculto', e.target.value !== 'E');
-  if (e.target.id === 'fo') { st.obraFiltro = e.target.value; calcula(); render(); }
+  if (e.target.id === 'mt') { $('ent').classList.toggle('oculto', e.target.value !== 'E'); desenhaConf(); }
+  const ci = e.target.dataset.ci;
+  if (ci !== undefined) {
+    const c = st.conf[+ci], campo = e.target.dataset.campo;
+    if (campo === 'mat') { c.mat = e.target.value; c.score = c.mat ? 1 : 0; c.aprendido = false; desenhaConf(); }
+    else if (campo === 'q') c.q = lerNum(e.target.value) || null;
+    else if (campo === 'preco') c.preco = e.target.value;
+  }
+  if (e.target.id === 'fo') { st.obraFiltro = e.target.value; lembrar('obra', st.obraFiltro); calcula(); render(); }
 });
 $('app').addEventListener('input', e => {
   if (e.target.id === 'busca') { st.busca = e.target.value; $('tabSaldo').innerHTML = linhasSaldo(); }

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7A8B6F">
+<title>Vistoria | TMC Engenharia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+
+/* Layout: uma coluna para usar na obra pelo celular — dados da unidade, um cartão por ambiente (C/NC por disciplina + observações), assinaturas; prévia A4 deitada por cima da tela. */
+:root{
+  --bg:#F3EFE6; --surface:#ffffff; --fg:#2f352b; --muted:#6b7163; --line:#ddd4c4;
+  --accent:#7A8B6F; --accent-strong:#5d6d53; --accent-fg:#ffffff; --chip:#f6f2ea;
+  --ok:#3f8f4f; --ok-bg:#e3f0e1; --nc:#b3261e; --nc-bg:#f8e1de; --danger:#a3392a; --desk:#e7e1d4;
+  --display:"Archivo","Segoe UI",system-ui,sans-serif; --body:"Inter","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
+  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --chip:#2e342a;
+  --ok:#8fcf8f; --ok-bg:#24402a; --nc:#f09a90; --nc-bg:#4a2622; --danger:#e08a7b; --desk:#151813; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1d211b; --surface:#262b23; --fg:#ece8df; --muted:#a8ad9f; --line:#3b4236;
+  --accent:#93a687; --accent-strong:#b3c4a7; --accent-fg:#16190f; --chip:#2e342a;
+  --ok:#8fcf8f; --ok-bg:#24402a; --nc:#f09a90; --nc-bg:#4a2622; --danger:#e08a7b; --desk:#151813; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--body);margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--accent);color:var(--accent-fg);
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent)}
+header.top img{height:30px;background:#fff;border-radius:6px;padding:2px 6px}
+header.top h1{font:800 18px/1 var(--display);margin:0;flex:1}
+header.top .proto{font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:#ffffff26;border-radius:20px;padding:4px 10px}
+.prog{height:4px;background:#ffffff40;position:absolute;left:0;right:0;bottom:0}.prog i{display:block;height:100%;background:#fff;transition:width .2s}
+
+.wrap{padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.panel h2{font:700 15px/1.2 var(--display);margin:0 0 10px}
+label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.grid2>div{min-width:0}
+@media (max-width:480px){.grid2{grid-template-columns:1fr}}
+input[type=text],input[type=date],select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+textarea{min-height:64px;resize:vertical;text-transform:uppercase}
+textarea::placeholder{text-transform:none}
+.resumo{display:flex;gap:8px;flex-wrap:wrap}
+.resumo span{font-size:12px;border-radius:20px;padding:5px 10px;background:var(--chip);font-variant-numeric:tabular-nums}
+.resumo .c{background:var(--ok-bg);color:var(--ok);font-weight:700}.resumo .nc{background:var(--nc-bg);color:var(--nc);font-weight:700}
+
+.amb{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.amb>header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#20241c;color:#fff}
+.amb>header b{font:700 15px var(--display);flex:1}
+.amb>header .st{font-size:12px;opacity:.9;font-variant-numeric:tabular-nums}
+.amb>header button{border:1px solid #ffffff55;background:transparent;color:#fff;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600}
+.discs{padding:6px 14px 0}
+.disc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.disc span{font-weight:500}
+.seg{display:flex;gap:6px}
+.seg button{min-width:58px;border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button.c[aria-pressed="true"]{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.seg button.nc[aria-pressed="true"]{background:var(--nc-bg);border-color:var(--nc);color:var(--nc)}
+.discs{padding-bottom:8px}
+.disc.temnc{border-bottom:0}
+.discobs{padding:0 0 10px;border-bottom:1px solid var(--line)}
+.discobs textarea{border-color:var(--nc);min-height:56px}
+.discobs .aviso{font-size:12px;color:var(--nc);margin:4px 0 0;font-weight:600}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.sigs{grid-template-columns:1fr}}
+.sig{border:1.5px dashed var(--line);border-radius:12px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface);padding:8px;text-align:center}
+.sig img{max-height:70px;max-width:100%;background:#fff;border-radius:6px}
+.sig small{color:var(--muted);font-size:12px}
+.sig b{font-size:13px}
+
+.btn{border:0;border-radius:10px;padding:12px 14px;font-weight:700;background:var(--accent);color:var(--accent-fg);width:100%}
+.fab{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
+  padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.fab .btn{max-width:760px;margin:0 auto;display:block}
+
+/* janelas por cima: prévia e assinatura */
+.overlay{position:fixed;inset:0;z-index:20;background:var(--desk);display:flex;flex-direction:column}
+.ovbar{display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-fg);
+  padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ovbar b{flex:1;font:800 16px var(--display)}
+.ovbar button{border:0;border-radius:10px;padding:9px 14px;font-weight:700}
+.ovbar .claro{background:#fff;color:#4a5a41}.ovbar .vidro{background:#ffffff26;color:var(--accent-fg)}
+.ovbody{flex:1;overflow:auto;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ovnote{max-width:1123px;margin:0 auto 10px;font-size:13px;color:var(--fg)}
+.ovnote ul{margin:4px 0 0;padding-left:18px;color:var(--nc)}
+#scaleBox{overflow:hidden;max-width:1123px;margin:0 auto}
+.scaler{transform-origin:top left}
+.padbox{flex:1;display:flex;flex-direction:column;gap:10px;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.padbox p{margin:0;color:var(--muted);font-size:13px}
+.acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.acoes{grid-template-columns:1fr}}
+.btn.sec{background:var(--surface);color:var(--accent-strong);border:1.5px solid var(--accent)}
+.btn.perigo{background:var(--surface);color:var(--danger);border:1.5px solid var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.enviado{font-size:12px;color:var(--muted);margin:8px 0 0}
+.dlgbox{max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.pc{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--nc);border-radius:12px;padding:10px 12px}
+.pc .loc{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.pc .d{font-weight:600;text-transform:uppercase;margin:2px 0 8px}
+.pc .row{display:flex;gap:8px}.pc .row>*{flex:1;min-width:0}
+@media (max-width:480px){.pc .row{flex-direction:column}}
+.msg{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px}
+.msg.ok{border-color:var(--ok);color:var(--fg)}
+#pad{flex:1;width:100%;min-height:200px;background:#fff;border:1px solid var(--line);border-radius:12px;touch-action:none}
+
+/* ----- folha do PDF (A4 deitada), sempre papel branco, cores do seu modelo ----- */
+.paper{--ink:#1c1c1c;--red:#c8102e;--soft:#6d6d6d;--rule:#cfcfcf;
+  width:1123px;height:794px;background:#fff;color:var(--ink);box-shadow:0 2px 14px #0000002a;padding:30px 34px 26px;
+  font:11px/1.35 Arial,Helvetica,sans-serif;display:flex;flex-direction:column;color-scheme:light}
+.ph{display:flex;align-items:center;gap:26px;border-bottom:2px solid var(--red);padding-bottom:10px}
+.ph img{width:140px}
+.ph h3{margin:0;font-size:22px;font-weight:700}
+.ph .sub{color:var(--red);font-size:13px;margin-top:4px}
+.pf{display:grid;grid-template-columns:1fr 380px;gap:6px 18px;margin-top:12px}
+.pf div{display:flex;gap:6px;align-items:flex-end;font-size:12px}
+.pf b{white-space:nowrap}
+.pf span{flex:1;border-bottom:1px solid var(--ink);min-height:16px;padding:0 4px 1px;font-size:12px}
+.pl{display:flex;gap:16px;align-items:center;margin:10px 0 6px;font-size:11px}
+.pl em{color:var(--soft);font-style:normal}
+.bx{display:inline-block;width:10px;height:10px;border:1px solid var(--ink);vertical-align:-1px;margin-right:3px;position:relative;background:#fff}
+.bx.on::after{content:"";position:absolute;inset:1.5px;background:var(--ink)}
+.pt{width:100%;border-collapse:collapse;table-layout:fixed}
+.pt th{background:var(--red);color:#fff;font-size:9.5px;padding:7px 3px;font-weight:700;letter-spacing:.01em}
+.pt td{border:1px solid #9a9a9a;height:64px;text-align:center;font-size:10px;vertical-align:middle}
+.pt td.am{background:#1c1c1c;color:#fff;font-weight:700;font-size:11.5px;width:115px}
+.pt td.ob{text-align:left;padding:4px 10px;vertical-align:top;background:repeating-linear-gradient(to bottom,transparent 0 15px,#c9c9c9 15px 16px);background-position:0 4px;
+  font-size:9.5px;line-height:16px;text-transform:uppercase;overflow:hidden}
+.pt td.nc{background:#fde8ea}
+.cc{display:inline-flex;gap:6px;white-space:nowrap}
+.pdecl{margin-top:8px;font-size:11px}
+.psig{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:56px}
+.psig div{text-align:center;font-size:10.5px}
+.psig .ln{border-top:1px solid var(--ink);padding-top:3px}
+.psig img{height:42px;display:block;margin:0 auto 2px}
+.psig .vazio{height:44px}
+
+/* ---- sistema ---- */
+header.top .quem{font-size:12px;opacity:.9}
+header.top a,header.top .sair{background:#fff;color:#4a5a41;border:0;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:600;font-size:13px}
+@media (max-width:480px){header.top .quem{display:none}header.top h1{font-size:16px}}
+.abas{display:flex;gap:6px}
+.abas button{flex:1;border:1px solid var(--accent);background:var(--surface);color:var(--accent-strong);border-radius:10px;padding:9px 6px;font-weight:600}
+.abas button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.acoes3{display:grid;grid-template-columns:1fr;gap:10px}
+.gl{display:flex;flex-direction:column;gap:8px}
+.gi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center}
+.gi .t{flex:1;min-width:0}
+.gi .t b{display:block}
+.gi .t small{color:var(--muted);font-size:12px}
+.gi .ncb{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;background:var(--nc-bg);color:var(--nc);white-space:nowrap}
+.gi .okb{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;background:var(--ok-bg);color:var(--ok);white-space:nowrap}
+.gi .lkent{border:1px solid var(--accent);color:var(--accent-strong);border-radius:9px;padding:7px 10px;font-weight:600;white-space:nowrap;text-decoration:none}
+.gi button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;font-weight:600;white-space:nowrap}
+#carregando{padding:24px}
+.oculto{display:none!important}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
+#render{position:fixed;left:-20000px;top:0}
+</style>
+</head>
+<body>
+<p id="carregando">Carregando…</p>
+<div id="sistema" class="oculto">
+<header class="top">
+  <img src="logo.jpg" alt="TMC Engenharia">
+  <h1>Vistoria</h1>
+  <span class="quem" id="quem"></span>
+  <a class="oculto" id="linkInicio" href="index.html">Início</a>
+  <button class="sair" id="btnSair" type="button">Sair</button>
+  <div class="prog"><i id="progBar"></i></div>
+</header>
+
+<main class="wrap">
+  <div class="abas"><button id="abaNova" type="button" aria-pressed="true">📝 Vistoria</button><button id="abaGuard" type="button" aria-pressed="false">🗂 Vistorias guardadas</button></div>
+
+  <div id="telaNova" style="display:flex;flex-direction:column;gap:14px">
+  <section class="panel">
+    <h2>Unidade vistoriada</h2>
+    <div class="grid2">
+      <div><label class="f" for="obra">Empreendimento</label><input type="text" id="obra" list="obraList" autocapitalize="characters" spellcheck="false" placeholder="Nome do empreendimento"><datalist id="obraList"></datalist></div>
+      <div><label class="f" for="unid">Unidade</label><input type="text" id="unid" list="unidList" spellcheck="false" placeholder="Ex.: Bloco 1 • Apto 101"><datalist id="unidList"></datalist></div>
+      <div><label class="f" for="cliente">Cliente</label><input type="text" id="cliente" autocapitalize="words" spellcheck="false" placeholder="Nome do cliente"></div>
+      <div><label class="f" for="data">Data</label><input type="date" id="data"></div>
+    </div>
+    <label class="f">Andamento</label>
+    <div class="resumo" id="resumo"></div>
+  </section>
+
+  <div id="ambs" style="display:flex;flex-direction:column;gap:14px"></div>
+
+  <section class="panel">
+    <h2>Assinaturas</h2>
+    <p style="margin:0 0 10px;font-size:13px;color:var(--muted)">Declaro ter vistoriado a unidade acima e estar ciente das observações registradas.</p>
+    <div class="sigs">
+      <button class="sig" id="sigCliente" type="button"></button>
+      <button class="sig" id="sigResp" type="button"></button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Ações</h2>
+    <div class="acoes3">
+      <button class="btn" id="btnGuardar" type="button">💾 Guardar vistoria (PDF assinado)</button>
+      <div class="acoes">
+        <button class="btn sec" id="btnEnviar" type="button">🔁 Enviar NC para Retrabalhos</button>
+        <button class="btn perigo" id="btnZerar" type="button">🗑 Zerar vistoria</button>
+      </div>
+    </div>
+    <p class="enviado" id="salvoInfo" hidden></p>
+    <p class="enviado" id="enviadoInfo" hidden></p>
+  </section>
+  </div>
+
+  <div id="telaGuard" class="oculto" style="flex-direction:column;gap:14px">
+    <section class="panel">
+      <h2>Vistorias guardadas</h2>
+      <input type="text" id="busca" placeholder="🔍 Buscar por empreendimento, unidade ou cliente" autocomplete="off">
+    </section>
+    <div class="gl" id="guardadas"></div>
+  </div>
+</main>
+
+<div class="fab" id="fab"><button class="btn" id="btnPrev" type="button">📄 Ver prévia e gerar PDF</button></div>
+</div>
+
+<div class="overlay" id="ov" role="dialog" aria-modal="true" aria-label="Prévia do PDF" hidden>
+  <div class="ovbar"><b>Prévia do PDF</b><button class="claro" id="btnBaixar" type="button">⬇ Baixar PDF</button><button class="vidro" id="btnFechar" type="button">Fechar</button></div>
+  <div class="ovbody"><div class="ovnote" id="ovnote"></div>
+    <div id="scaleBox"><div class="scaler" id="scaler"><article class="paper" id="paper"></article></div></div></div>
+</div>
+
+<div class="overlay" id="ovEnv" role="dialog" aria-modal="true" aria-label="Enviar para Retrabalhos" hidden>
+  <div class="ovbar"><b>Enviar NC para Retrabalhos</b><button class="vidro" id="envFechar" type="button">Cancelar</button></div>
+  <div class="ovbody"><div class="dlgbox" id="envBox"></div></div>
+</div>
+
+<div class="overlay" id="ovMsg" role="dialog" aria-modal="true" aria-label="Aviso" hidden>
+  <div class="ovbar"><b id="msgTitulo"></b></div>
+  <div class="ovbody"><div class="dlgbox" id="msgBox"></div></div>
+</div>
+
+<div class="overlay" id="ovSig" role="dialog" aria-modal="true" aria-label="Assinatura" hidden>
+  <div class="ovbar"><b id="sigTitulo">Assinatura</b><button class="vidro" id="sigLimpar" type="button">Limpar</button><button class="vidro" id="sigCancelar" type="button">Cancelar</button><button class="claro" id="sigOk" type="button">Confirmar</button></div>
+  <div class="padbox"><p>Assine com o dedo dentro do quadro. Vire o celular de lado para ter mais espaço.</p><canvas id="pad"></canvas></div>
+</div>
+
+<div id="render"></div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const APTS = ['101', '102', '201', '202'];
+const AMBS = ['Sala', 'Quarto suíte', 'Quarto 01', 'WC', 'Cozinha', 'Área de serviço', 'Varanda'];
+const DISC = ['Elétrica', 'Hidráulica', 'Acabamentos', 'Esquadrias', 'Pintura', 'Outros'];
+const COMODO_RET = { 'Quarto suíte': 'Suíte' };     // ambiente da vistoria -> cômodo no Retrabalhos
+const QUEM = { cliente: 'Assinatura de recebimento - Cliente', resp: 'Responsável TMC Engenharia' };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ok = r => { if (r.error) throw r.error; return r.data; };
+const msg = e => (e && e.message) || 'Erro inesperado.';
+const k = (a, d) => a + '|' + d;
+const hojeISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const fmtData = d => d ? d.split('-').reverse().join('/') : '';
+const fmtDH = d => new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3500); }
+const travar = on => document.body.style.overflow = on ? 'hidden' : '';
+
+let perfil, editor = false, obras = [], guardadas = [];
+// Rascunho da vistoria em andamento fica no aparelho (não se perde se a internet cair)
+const vazio = () => ({ obra: '', unid: '', cliente: '', data: hojeISO(), m: {}, obs: {}, sig: {} });
+let v; try { v = JSON.parse(localStorage.getItem('tmc_vist_rascunho')); } catch (e) {}
+if (!v || !v.m) v = vazio();
+const salva = () => { try { localStorage.setItem('tmc_vist_rascunho', JSON.stringify(v)); } catch (e) {} };
+
+// ===== DADOS DA UNIDADE =====
+function unidades() {
+  const o = obras.find(x => x.nome.toLowerCase() === $('obra').value.trim().toLowerCase()), l = [];
+  if (o) for (let b = 1; b <= o.blocos; b++) APTS.forEach(a => l.push(`Bloco ${b} • Apto ${a}`));
+  $('unidList').innerHTML = l.map(x => `<option value="${esc(x)}">`).join('');
+}
+function preencheCampos() { $('obra').value = v.obra; unidades(); $('unid').value = v.unid; $('cliente').value = v.cliente; $('data').value = v.data; }
+$('obra').oninput = () => { v.obra = $('obra').value; unidades(); salva(); };
+$('unid').oninput = () => { v.unid = $('unid').value; salva(); };
+$('cliente').oninput = () => { v.cliente = $('cliente').value; salva(); };
+$('data').onchange = () => { v.data = $('data').value; salva(); };
+
+// ===== AMBIENTES =====
+const faltaObsItem = (a, d) => v.m[k(a, d)] === 'NC' && !(v.obs[k(a, d)] || '').trim();
+function contagem() { const tot = AMBS.length * DISC.length, vals = Object.values(v.m); return { tot, feitos: vals.length, c: vals.filter(x => x === 'C').length, nc: vals.filter(x => x === 'NC').length }; }
+function desenhaAmbs() {
+  $('ambs').innerHTML = AMBS.map(a => {
+    const feitos = DISC.filter(d => v.m[k(a, d)]).length, nc = DISC.filter(d => v.m[k(a, d)] === 'NC').length;
+    return `<section class="amb" data-a="${esc(a)}"><header><b>${esc(a)}</b><span class="st">${feitos}/${DISC.length}${nc ? ' • ' + nc + ' NC' : ''}</span>
+      <button type="button" data-tudo="${esc(a)}">Tudo C</button></header>
+      <div class="discs">${DISC.map(d => { const x = v.m[k(a, d)], id = `obs-${AMBS.indexOf(a)}-${DISC.indexOf(d)}`; return `<div class="disc ${x === 'NC' ? 'temnc' : ''}"><span>${d}</span><div class="seg">
+        <button type="button" class="c" aria-pressed="${x === 'C'}" data-a="${esc(a)}" data-d="${d}" data-x="C">C</button>
+        <button type="button" class="nc" aria-pressed="${x === 'NC'}" data-a="${esc(a)}" data-d="${d}" data-x="NC">NC</button></div></div>
+        ${x === 'NC' ? `<div class="discobs"><label class="sr" for="${id}">Observação de ${d}</label>
+          <textarea id="${id}" data-obs="${esc(k(a, d))}" lang="pt-BR" spellcheck="true" autocorrect="on" placeholder="O que está errado em ${d.toLowerCase()}?">${esc(v.obs[k(a, d)] || '')}</textarea>
+          <p class="aviso" ${faltaObsItem(a, d) ? '' : 'hidden'}>Descreva o problema.</p></div>` : ''}`; }).join('')}</div></section>`;
+  }).join('');
+  resumo();
+}
+function resumo() {
+  const c = contagem();
+  $('resumo').innerHTML = `<span>${c.feitos} de ${c.tot} itens marcados</span><span class="c">${c.c} C</span><span class="nc">${c.nc} NC</span>`;
+  $('progBar').style.width = (c.feitos / c.tot * 100) + '%';
+}
+$('ambs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  let foco = null;
+  if (b.dataset.tudo) { const a = b.dataset.tudo; DISC.forEach(d => { if (!v.m[k(a, d)]) v.m[k(a, d)] = 'C'; }); }
+  else { const kk = k(b.dataset.a, b.dataset.d); if (v.m[kk] === b.dataset.x) delete v.m[kk]; else v.m[kk] = b.dataset.x; if (v.m[kk] === 'NC') foco = kk; }
+  const y = scrollY; salva(); desenhaAmbs(); scrollTo(0, y);
+  if (foco) { const t = document.querySelector(`textarea[data-obs="${CSS.escape(foco)}"]`); if (t && !t.value) t.focus({ preventScroll: true }); }
+});
+$('ambs').addEventListener('input', e => {
+  const kk = e.target.dataset.obs; if (!kk) return;
+  v.obs[kk] = e.target.value; salva();
+  e.target.parentElement.querySelector('.aviso').hidden = !!e.target.value.trim();
+});
+
+// ===== ASSINATURAS =====
+function desenhaSigs() {
+  [['cliente', 'sigCliente'], ['resp', 'sigResp']].forEach(([q, id]) => {
+    $(id).innerHTML = v.sig[q] ? `<img src="${v.sig[q]}" alt="Assinatura"><small>${QUEM[q]} • tocar para refazer</small>` : `<b>✍️ Assinar</b><small>${QUEM[q]}</small>`;
+  });
+}
+let quem = null, ctx, riscou = false;
+function abreSig(q) {
+  quem = q; $('sigTitulo').textContent = q === 'cliente' ? 'Assinatura do cliente' : 'Assinatura do responsável';
+  $('ovSig').hidden = false; travar(true);
+  const c = $('pad'), r = c.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  c.width = r.width * dpr; c.height = r.height * dpr; ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
+  ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1c2a5a'; riscou = false;
+}
+const fechaSig = () => { $('ovSig').hidden = true; travar(false); };
+(() => {
+  const c = $('pad'); let ativo = false;
+  const pt = e => { const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  c.addEventListener('pointerdown', e => { ativo = true; c.setPointerCapture(e.pointerId); const [x, y] = pt(e); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + .1, y + .1); ctx.stroke(); riscou = true; });
+  c.addEventListener('pointermove', e => { if (!ativo) return; const [x, y] = pt(e); ctx.lineTo(x, y); ctx.stroke(); });
+  ['pointerup', 'pointercancel'].forEach(t => c.addEventListener(t, () => ativo = false));
+})();
+$('sigLimpar').onclick = () => { const c = $('pad'); ctx.clearRect(0, 0, c.width, c.height); riscou = false; };
+$('sigCancelar').onclick = fechaSig;
+$('sigOk').onclick = () => {
+  if (!riscou) delete v.sig[quem];
+  else {
+    const c = $('pad'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let x0 = c.width, y0 = c.height, x1 = 0, y1 = 0;
+    for (let y = 0; y < c.height; y += 2) for (let x = 0; x < c.width; x += 2) if (d[(y * c.width + x) * 4 + 3]) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    const m = 8, w = x1 - x0 + 2 * m, h = y1 - y0 + 2 * m, o = document.createElement('canvas'); o.width = w; o.height = h;
+    o.getContext('2d').drawImage(c, x0 - m, y0 - m, w, h, 0, 0, w, h); v.sig[quem] = o.toDataURL('image/png');
+  }
+  salva(); desenhaSigs(); fechaSig();
+};
+$('sigCliente').onclick = () => abreSig('cliente');
+$('sigResp').onclick = () => abreSig('resp');
+
+// ===== FOLHA DO PDF =====
+function obsAmb(a) { return DISC.filter(d => v.m[k(a, d)] === 'NC' && (v.obs[k(a, d)] || '').trim()).map(d => `<b>${d.toUpperCase()}:</b> ${esc(v.obs[k(a, d)].trim())}`).join('<br>'); }
+function papelHTML() {
+  const cel = (a, d) => { const x = v.m[k(a, d)]; return `<td class="${x === 'NC' ? 'nc' : ''}"><span class="cc"><span><span class="bx ${x === 'C' ? 'on' : ''}"></span>C</span><span><span class="bx ${x === 'NC' ? 'on' : ''}"></span>NC</span></span></td>`; };
+  const sig = q => v.sig[q] ? `<img src="${v.sig[q]}" alt="">` : '<div class="vazio"></div>';
+  return `
+    <div class="ph"><img src="logo.jpg" alt="TMC Engenharia"><div><h3>TERMO DE VISTORIA DE UNIDADE</h3><div class="sub">Checklist de entrega de apartamento</div></div></div>
+    <div class="pf"><div><b>Empreendimento:</b><span>${esc(v.obra)}</span></div><div><b>Unidade:</b><span>${esc(v.unid)}</span></div>
+      <div><b>Cliente:</b><span>${esc(v.cliente)}</span></div><div><b>Data:</b><span>${fmtData(v.data)}</span></div></div>
+    <div class="pl">Legenda: <span><span class="bx"></span>C = Conforme</span><span><span class="bx"></span>NC = Não conforme</span><em>Marque uma opção por item e registre as pendências na coluna Observações.</em></div>
+    <table class="pt"><colgroup><col style="width:115px">${DISC.map(() => '<col style="width:83px">').join('')}<col></colgroup>
+      <thead><tr><th>AMBIENTE</th>${DISC.map(d => `<th>${d.toUpperCase()}</th>`).join('')}<th>OBSERVAÇÕES</th></tr></thead>
+      <tbody>${AMBS.map(a => `<tr><td class="am">${esc(a)}</td>${DISC.map(d => cel(a, d)).join('')}<td class="ob">${obsAmb(a)}</td></tr>`).join('')}</tbody></table>
+    <div class="pdecl">Declaro ter vistoriado a unidade acima e estar ciente das observações registradas.</div>
+    <div class="psig"><div>${sig('cliente')}<div class="ln">${QUEM.cliente}${v.cliente ? ' • ' + esc(v.cliente) : ''}</div></div><div>${sig('resp')}<div class="ln">${QUEM.resp}</div></div></div>`;
+}
+function pendentes() {
+  const c = contagem(), r = [];
+  if (!v.obra.trim()) r.push('Falta o nome do empreendimento');
+  if (!v.unid.trim()) r.push('Falta a unidade');
+  if (!v.cliente.trim()) r.push('Falta o nome do cliente');
+  if (!v.data) r.push('Falta a data');
+  if (c.feitos < c.tot) r.push(`${c.tot - c.feitos} itens sem marcação`);
+  AMBS.forEach(a => DISC.filter(d => faltaObsItem(a, d)).forEach(d => r.push(`${a} • ${d}: NC sem observação`)));
+  if (!v.sig.cliente) r.push('Falta a assinatura do cliente');
+  if (!v.sig.resp) r.push('Falta a assinatura do responsável');
+  return r;
+}
+function ajusta() { const box = $('scaleBox'), w = box.clientWidth; if (!w) return; const s = Math.min(1, w / 1123); $('scaler').style.transform = `scale(${s})`; box.style.height = (794 * s) + 'px'; }
+addEventListener('resize', ajusta);
+$('btnPrev').onclick = () => {
+  $('paper').innerHTML = papelHTML(); const p = pendentes();
+  $('ovnote').innerHTML = p.length ? `<b>Antes de guardar, confira:</b><ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<b style="color:var(--ok)">✓ Tudo preenchido. Pode guardar.</b>';
+  $('ov').hidden = false; travar(true); ajusta(); $('btnFechar').focus();
+};
+$('btnFechar').onclick = () => { $('ov').hidden = true; travar(false); };
+
+// Gera o PDF a partir da folha (A4 deitada), no tamanho real
+async function gerarPdf() {
+  const box = $('render'); box.innerHTML = `<article class="paper">${papelHTML()}</article>`;
+  await Promise.all([...box.querySelectorAll('img')].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+  if (document.fonts) await document.fonts.ready;
+  const canvas = await html2canvas(box.firstElementChild, { scale: 2, backgroundColor: '#ffffff', logging: false });
+  box.innerHTML = '';
+  const doc = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
+  doc.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 297, 210);
+  doc.setProperties({ title: `Vistoria ${v.obra} ${v.unid}`, author: 'TMC Engenharia' });
+  return doc;
+}
+const nomeArquivo = () => `vistoria_${v.obra}_${v.unid}_${v.data}`.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w-]+/g, '_').replace(/_+/g, '_') + '.pdf';
+$('btnBaixar').onclick = async () => {
+  const b = $('btnBaixar'); b.disabled = true; b.textContent = 'Gerando…';
+  try { (await gerarPdf()).save(nomeArquivo()); } catch (e) { toast('Não foi possível gerar o PDF: ' + msg(e)); }
+  b.disabled = false; b.textContent = '⬇ Baixar PDF';
+};
+
+// ===== AVISOS EM TELA =====
+function aviso(titulo, html, botoes) {
+  $('msgTitulo').textContent = titulo;
+  $('msgBox').innerHTML = `<div class="msg">${html}</div><div class="acoes">${botoes.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}" type="button">${b.txt}</button>`).join('')}</div>`;
+  $('msgBox').querySelectorAll('button').forEach(el => el.onclick = () => { fechaAviso(); botoes[+el.dataset.i].fn?.(); });
+  $('ovMsg').hidden = false; travar(true);
+}
+const fechaAviso = () => { $('ovMsg').hidden = true; travar(false); };
+
+// ===== GUARDAR NO BANCO =====
+async function guardar(forcar) {
+  const p = pendentes();
+  if (p.length) return aviso('Falta preencher', `<b>Para guardar a vistoria, complete:</b><ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`, [{ txt: 'Entendi' }]);
+  if (v.salvaId && !forcar) return aviso('Vistoria já guardada', `Esta vistoria já foi guardada em ${esc(v.salvaEm)}.<br>Se você alterou alguma coisa, pode guardar uma <b>nova versão</b>. A anterior continua guardada.`,
+    [{ txt: 'Cancelar', cls: 'sec' }, { txt: 'Guardar nova versão', fn: () => guardar(true) }]);
+  const b = $('btnGuardar'); b.disabled = true; b.textContent = 'Gerando o PDF…';
+  let id = null;
+  try {
+    const doc = await gerarPdf(), c = contagem();
+    b.textContent = 'Guardando…';
+    const row = ok(await sb.from('vistorias').insert({
+      criado_por: perfil.nome, obra: v.obra.trim(), unidade: v.unid.trim(), cliente: v.cliente.trim(), data: v.data,
+      marcacoes: v.m, observacoes: Object.fromEntries(Object.entries(v.obs).filter(([kk, t]) => v.m[kk] === 'NC' && t.trim()).map(([kk, t]) => [kk, t.trim().toLocaleUpperCase('pt-BR')])),
+      total_nc: c.nc, assinatura_cliente: v.sig.cliente, assinatura_responsavel: v.sig.resp
+    }).select('id').single());
+    id = row.id;
+    const caminho = `${v.data.slice(0, 4)}/${id}_${nomeArquivo()}`;
+    ok(await sb.storage.from('vistorias').upload(caminho, doc.output('blob'), { contentType: 'application/pdf' }));
+    ok(await sb.from('vistorias').update({ pdf: caminho }).eq('id', id));
+    v.salvaId = id; v.salvaEm = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); salva(); infos();
+    const nc = contagem().nc;
+    aviso('Vistoria guardada', `<b style="color:var(--ok)">✓ Vistoria guardada com o PDF assinado.</b><br>${esc(v.obra)} • ${esc(v.unid)} • ${esc(v.cliente)}<br><br>Ela fica em <b>Vistorias guardadas</b>.${nc && !v.enviadoEm ? `<br><br>Esta vistoria tem <b>${nc} NC</b>. Quer enviar para o Retrabalhos?` : ''}`,
+      [...(nc && !v.enviadoEm ? [{ txt: '🔁 Enviar NC', cls: 'sec', fn: abreEnviar }] : []), { txt: '🗑 Zerar para nova vistoria', cls: 'perigo', fn: () => $('btnZerar').click() }, { txt: 'Continuar aqui' }]);
+  } catch (e) {
+    if (id) await sb.from('vistorias').delete().eq('id', id);
+    aviso('Não foi possível guardar', `${esc(msg(e))}<br><br>Nada foi perdido: a vistoria continua preenchida neste aparelho. Tente de novo quando a internet estiver boa.`, [{ txt: 'Entendi' }]);
+  }
+  b.disabled = false; b.textContent = '💾 Guardar vistoria (PDF assinado)';
+}
+$('btnGuardar').onclick = () => guardar(false);
+function infos() {
+  $('salvoInfo').hidden = !v.salvaId; $('salvoInfo').textContent = v.salvaId ? `✓ Guardada no banco de dados em ${v.salvaEm}.` : '';
+  $('enviadoInfo').hidden = !v.enviadoEm; $('enviadoInfo').textContent = v.enviadoEm ? `✓ NC enviados para Retrabalhos em ${v.enviadoEm}.` : '';
+}
+
+// ===== NC -> RETRABALHOS =====
+let envLista = [];
+function pendenciasNC() {
+  const r = [];
+  AMBS.forEach(a => DISC.filter(d => v.m[k(a, d)] === 'NC').forEach(d => {
+    const obs = (v.obs[k(a, d)] || '').trim().toLocaleUpperCase('pt-BR');
+    r.push({ comodo: COMODO_RET[a] || a, desc: `${d.toUpperCase()}: ${obs || 'NÃO CONFORME NA VISTORIA'}`, semObs: !obs, resp: '', mat: '' });
+  }));
+  return r;
+}
+function abreEnviar() {
+  if (!(perfil.retrabalhos === 'editar')) return aviso('Sem acesso', 'Seu usuário não pode lançar no Retrabalhos.', [{ txt: 'Entendi' }]);
+  if (!v.obra.trim() || !v.unid.trim()) return aviso('Falta preencher', 'Preencha o empreendimento e a unidade antes de enviar.', [{ txt: 'Entendi' }]);
+  envLista = pendenciasNC();
+  const box = $('envBox');
+  if (!envLista.length) box.innerHTML = '<div class="msg">Nenhum item NC nesta vistoria. Não há pendências para enviar.</div>';
+  else box.innerHTML = `<div class="msg">Serão criadas <b>${envLista.length} pendências</b> (uma por item NC) em <b>Retrabalhos</b>, na obra <b>${esc(v.obra)}</b>, local <b>${esc(v.unid)}</b>.
+      Responsável e material são opcionais aqui: o que ficar em branco entra como <b>"a completar"</b>.
+      ${v.enviadoEm ? `<br><br>⚠️ Esta vistoria já foi enviada em ${esc(v.enviadoEm)}. Enviar de novo cria as pendências outra vez.` : ''}</div>
+    ${envLista.map((p, i) => `<div class="pc"><div class="loc">${esc(v.unid)} • ${esc(p.comodo)}</div><div class="d">${esc(p.desc)}</div>
+      ${p.semObs ? '<p class="enviado" style="color:var(--nc);margin:0 0 8px">Sem observação: volte e descreva o problema, ou a pendência vai só com a disciplina.</p>' : ''}
+      <div class="row"><input type="text" data-env="${i}" data-c="resp" placeholder="Responsável (opcional)" spellcheck="false" autocapitalize="words">
+      <input type="text" data-env="${i}" data-c="mat" placeholder="Material (opcional)" lang="pt-BR" spellcheck="true"></div></div>`).join('')}
+    <button class="btn" id="envOk" type="button">Criar ${envLista.length} pendências</button>`;
+  $('ovEnv').hidden = false; travar(true);
+}
+$('envBox').addEventListener('input', e => { const i = e.target.dataset.env; if (i !== undefined) envLista[+i][e.target.dataset.c] = e.target.value.trim(); });
+$('envBox').addEventListener('click', async e => {
+  if (e.target.id !== 'envOk') return;
+  const b = e.target; b.disabled = true; b.textContent = 'Criando…';
+  try {
+    ok(await sb.from('pendencias').insert(envLista.map(p => ({ obra: v.obra.trim(), local: v.unid.trim(), comodo: p.comodo, descricao: p.desc, responsavel: p.resp, material: p.mat, origem: 'vistoria', vistoria_id: v.salvaId || null, criado_por: perfil.nome }))));
+    v.enviadoEm = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); salva(); infos();
+    if (v.salvaId) sb.from('vistorias').update({ enviado_retrabalhos_em: new Date().toISOString() }).eq('id', v.salvaId).then(() => {});
+    const inc = envLista.filter(p => !p.resp || !p.mat).length;
+    $('envBox').innerHTML = `<div class="msg ok"><b>✓ ${envLista.length} pendências criadas em Retrabalhos.</b>${inc ? `<br>${inc} ficaram como "a completar": abra o Retrabalhos e use Editar para colocar responsável e material.` : ''}</div>
+      <div class="acoes"><a class="btn sec" href="retrabalhos.html" style="text-align:center;text-decoration:none">Abrir Retrabalhos</a><button class="btn" id="envFim" type="button">Voltar para a vistoria</button></div>`;
+    $('envFim').onclick = fechaEnv;
+  } catch (err) { toast('Não foi possível criar: ' + msg(err)); b.disabled = false; b.textContent = `Criar ${envLista.length} pendências`; }
+});
+const fechaEnv = () => { $('ovEnv').hidden = true; travar(false); };
+$('envFechar').onclick = fechaEnv;
+$('btnEnviar').onclick = abreEnviar;
+
+// ===== ZERAR =====
+$('btnZerar').onclick = () => aviso('Zerar vistoria',
+  `<b>Apagar tudo o que foi preenchido nesta vistoria?</b><br>Somem as marcações C/NC, as observações, o cliente, o empreendimento, a unidade e as duas assinaturas. A data volta para hoje.
+   <br><br>${v.salvaId ? 'A vistoria <b>guardada no banco continua guardada</b>. ' : '<b style="color:var(--nc)">Esta vistoria ainda não foi guardada no banco: ela será perdida.</b> '}As pendências enviadas para o Retrabalhos não são apagadas.`,
+  [{ txt: 'Cancelar', cls: 'sec' }, { txt: 'Sim, zerar', cls: 'perigo', fn: () => { v = vazio(); salva(); preencheCampos(); desenhaAmbs(); desenhaSigs(); infos(); scrollTo(0, 0); } }]);
+
+// ===== VISTORIAS GUARDADAS =====
+async function carregaGuardadas() {
+  $('guardadas').innerHTML = '<p class="enviado">Carregando…</p>';
+  try { guardadas = ok(await sb.from('vistorias').select('id,criado_em,criado_por,obra,unidade,cliente,data,total_nc,pdf,enviado_retrabalhos_em').order('criado_em', { ascending: false }).limit(1000)); listaGuardadas(); }
+  catch (e) { $('guardadas').innerHTML = `<p class="enviado">Erro ao carregar: ${esc(msg(e))}</p>`; }
+}
+function listaGuardadas() {
+  const b = $('busca').value.trim().toLowerCase();
+  const l = guardadas.filter(g => !b || `${g.obra} ${g.unidade} ${g.cliente}`.toLowerCase().includes(b));
+  $('guardadas').innerHTML = l.map(g => `<div class="gi"><div class="t"><b>${esc(g.obra)} • ${esc(g.unidade)}</b><small>${esc(g.cliente)} • vistoria de ${fmtData(g.data)} • guardada em ${fmtDH(g.criado_em)}${g.criado_por ? ' por ' + esc(g.criado_por) : ''}</small></div>
+    ${g.total_nc ? `<span class="ncb">${g.total_nc} NC</span>` : '<span class="okb">sem NC</span>'}
+    ${g.pdf ? `<button type="button" data-pdf="${esc(g.pdf)}">📄 PDF</button>` : ''}${perfil.entrega && perfil.entrega !== 'nenhum' ? `<a class="lkent" href="entrega_chaves.html?v=${g.id}">🔑 Entrega</a>` : ''}</div>`).join('') || `<p class="enviado">${guardadas.length ? 'Nenhuma vistoria encontrada.' : 'Nenhuma vistoria guardada ainda.'}</p>`;
+}
+$('busca').oninput = listaGuardadas;
+$('guardadas').addEventListener('click', async e => {
+  const b = e.target.closest('[data-pdf]'); if (!b) return;
+  const w = window.open('', '_blank');   // abre a aba já no clique (o celular bloqueia se abrir depois)
+  try { const d = ok(await sb.storage.from('vistorias').createSignedUrl(b.dataset.pdf, 600)); if (w) w.location = d.signedUrl; else location.href = d.signedUrl; }
+  catch (err) { if (w) w.close(); toast('Não consegui abrir o PDF: ' + msg(err)); }
+});
+function aba(t) {
+  $('abaNova').setAttribute('aria-pressed', t === 'nova'); $('abaGuard').setAttribute('aria-pressed', t === 'guard');
+  $('telaNova').style.display = t === 'nova' ? 'flex' : 'none'; $('telaGuard').classList.toggle('oculto', t !== 'guard'); $('telaGuard').style.display = t === 'guard' ? 'flex' : 'none';
+  $('fab').classList.toggle('oculto', t !== 'nova'); $('progBar').parentElement.classList.toggle('oculto', t !== 'nova');
+  if (t === 'guard') carregaGuardadas();
+}
+$('abaNova').onclick = () => aba('nova'); $('abaGuard').onclick = () => aba('guard');
+$('btnSair').onclick = () => TMC.sair();
+addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (!$('ov').hidden) $('btnFechar').click(); else if (!$('ovSig').hidden) fechaSig(); else if (!$('ovEnv').hidden) fechaEnv(); else if (!$('ovMsg').hidden) fechaAviso(); });
+
+(async () => {
+  perfil = await TMC.exigirAcesso('vistoria');
+  editor = perfil.vistoria === 'editar';
+  $('quem').textContent = perfil.nome;
+  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  try { obras = ok(await sb.from('crono_obras').select('nome,blocos').order('nome')); } catch (e) { obras = []; }
+  $('obraList').innerHTML = obras.map(o => `<option value="${esc(o.nome)}">`).join('');
+  preencheCampos(); desenhaAmbs(); desenhaSigs(); infos();
+  if (!editor) { ['btnGuardar', 'btnEnviar', 'btnZerar'].forEach(id => $(id).disabled = true); }
+  $('carregando').remove(); $('sistema').classList.remove('oculto');
+})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+</script>
+</body>
+</html>
