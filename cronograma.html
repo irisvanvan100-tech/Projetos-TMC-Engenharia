@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#7A8B6F">
+<title>Cronograma | TMC Engenharia</title>
+<style>
+:root{--bege:#E3C4A8;--oliva:#7A8B6F;--olivaesc:#5d6d53;--fundo:#F3EFE6;--tinta:#2f352b;--borda:#d8cfbf;--erro:#a3392a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:15px/1.4 "Segoe UI",system-ui,sans-serif}
+button,input,select{font:inherit}
+.oculto{display:none!important}
+header{background:var(--oliva);color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:18px;flex:1}
+header .quem{opacity:.9;font-size:13px}
+header .marca{height:32px;background:#fff;border-radius:6px;padding:2px 6px}
+header a,header button{background:#fff;color:var(--oliva);border:1px solid #fff;border-radius:6px;padding:6px 12px;text-decoration:none;cursor:pointer}
+.abas{display:flex;gap:6px;padding:10px 12px 0;max-width:900px;margin:auto}
+.abas button{flex:1;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:10px;padding:9px 6px;cursor:pointer}
+.abas button.on{background:var(--oliva);color:#fff;font-weight:600}
+main{padding:12px;max-width:900px;margin:auto}
+.card{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:12px;margin-bottom:12px}
+select,input{padding:10px;border-radius:10px;border:1px solid var(--borda);width:100%;margin:4px 0;background:#fff}
+.btn{background:var(--oliva);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600;width:100%;margin:4px 0;cursor:pointer}
+.pq{border:1px solid var(--borda);background:#fff;border-radius:8px;padding:5px 9px;cursor:pointer}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.bar{height:10px;background:#e8e2d6;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--oliva)}
+.sech{display:flex;justify-content:space-between;align-items:center;font-weight:700;cursor:pointer;gap:8px}
+.item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #f0ece3;gap:6px}.item span{font-size:13px;flex:1}
+.lt{display:flex;gap:4px}.lt button{width:36px;height:36px;border-radius:8px;border:1px solid #ccc;background:#fff;font-weight:700;cursor:pointer}
+.lt button.on{color:#fff;border:0}.cA{background:#f2c94c!important}.cB{background:#e8a33d!important}.cC{background:#9bbf7a!important}.cD{background:#3f8f4f!important}
+.big{font-size:28px;font-weight:800;color:var(--olivaesc)}
+.chips{display:flex;gap:6px;overflow:auto;padding-bottom:4px}.chips button{white-space:nowrap;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:20px;padding:7px 12px;cursor:pointer}.chips button.on{background:var(--oliva);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:6px;border-bottom:1px solid #eee;text-align:left}
+.muted{color:#777;font-size:12px}
+.peso input{width:80px;display:inline;margin:0 4px}
+body.view .editor{display:none!important}
+body.view .lt button:not(.on){display:none}
+body.busy{cursor:progress}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
+@media(max-width:480px){header{gap:6px;padding:8px 10px}header .quem{display:none}header h1{font-size:16px}header a,header button{padding:5px 9px}}
+</style>
+</head>
+<body>
+<p id="carregando" style="padding:24px">Carregando…</p>
+<div id="sistema" class="oculto">
+  <header>
+    <img class="marca" src="logo.jpg" alt="TMC Engenharia">
+    <h1>Cronograma</h1>
+    <span class="quem" id="quem"></span>
+    <a class="oculto" id="linkInicio" href="index.html">Início</a>
+    <button id="btnSair">Sair</button>
+  </header>
+  <div class="abas">
+    <button data-tela="c" class="on">📅 Andamento</button>
+    <button data-tela="o">🏗️ Obras</button>
+    <button data-tela="h">🕘 Histórico</button>
+  </div>
+  <main id="app"></main>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+// Setores e serviços do cronograma (a ordem importa: o banco guarda a posição)
+const SETORES=[{"nome": "SERVIÇOS PRELIMINARES", "itens": ["MOBILIZAÇÃO DE CONTAINER E EQUIPAMENTOS", "LIGAÇÃO PROVISÓRIA DE ÁGUA", "LIGAÇÃO PROVISÓRIA DE ENERGIA", "LIGAÇÃO PROVISÓRIA DE INTERNET", "LIMPEZA DO TERRENO", "GABARITO E LOCAÇÃO DA OBRA"]}, {"nome": "FUNDAÇÃO", "itens": ["ESCAVAÇÃO MÁQUINA BALDRAME", "ESCAVAÇÃO MÁQUINA FOSSA", "ESCAVAÇÃO MÁQUINA FILTRO", "ESCAVAÇÃO MÁQUINA SUMIDOURO", "ALICERCE PEDRAS", "BALDRAME TIJOLO", "CINTA", "ATERRO", "COMPACTAÇÃO", "LONA", "CONTRAPISO"]}, {"nome": "ESTRUTURA E ALVENARIA - TÉRREO", "itens": ["ALVENARIAS: FOSSA, FILTRO E SUMIDOURO", "ALVENARIA MURO", "REBOCO MURO + CHAPIM", "ALVENARIA TÉRREO", "MONTAGEM DE ESCADA PRONTA", "CINTA", "MONTAGEM DE LAJE", "CONCRETAGEM DE LAJE (USINADO)"]}, {"nome": "ESTRUTURA E ALVENARIA - SUPERIOR", "itens": ["ALVENARIA SUPERIOR", "CINTA SUPERIOR", "MONTAGEM DE LAJE SUPERIOR", "CONCRETAGEM DE LAJE (USINADO)"]}, {"nome": "ACABAMENTOS DE ESTRUTURAS E ALVENARIAS", "itens": ["REBOCO INTERNO 3 FIADAS", "REBOCO WC + COZINHA", "REBOCOS VARANDAS", "REGULARIZAÇÃO DE PISOS", "GESSO"]}, {"nome": "COBERTURA", "itens": ["EMPENA", "ESTRUTURA EM MADEIRA", "COBERTA EM TELHA CERÂMICA", "CHUMBAMENTO DE TELHAS"]}, {"nome": "IMPERMEABILIZAÇÃO", "itens": ["CINTA BALDRAME", "BALDRAMES", "3 FIADAS INTERNAS VEDATOP", "3 FIADAS EXTERNAS MASSA VEDATOP", "WCS SUPERIOR", "VARANDAS", "3 FIADAS EXTERNAS VEDATOP APÓS REBOCO"]}, {"nome": "ÁREAS EXTERNAS - PRÉDIO", "itens": ["REBOCO EXTERNO", "CALÇADAS EXTERNAS", "ALVENARIAS DE CAIXAS", "TAMPAS PARA CAIXAS", "MONTAGEM DE CASAS DE GÁS", "CONCRETAGEM DE CALÇADAS EXTERNAS", "CONCRETAGEM DE GARAGENS", "FINALIZAÇÃO DE PASSEIOS COM BRITA", "FINALIZAÇÃO DE PASSEIOS COM ARISCO PARA GRAMA"]}, {"nome": "ACABAMENTOS", "itens": ["ACABAMENTO DE PORTAS E JANELAS", "ASSENTAMENTO DE PEITORIS", "ASSENTAMENTO DE CERÂMICA", "INSTALAÇÃO DE PORTAS E JANELAS", "INSTALAÇÃO DE BANCADAS", "INSTALAÇÃO DE LOUÇAS E METAIS"]}, {"nome": "INSTALAÇÕES", "itens": ["INFRA HIDRÁULICA + DADOS PARA CONTRAPISO", "INFRA ELÉTRICA MUROS", "INFRA ELÉTRICA APTOS + CAIXINHAS", "TOMADAS / INTERRUPTORES / LUMINÁRIAS / FIAÇÃO", "INFRA HIDRÁULICA APTOS", "INFRA GÁS", "CAIXAS D'ÁGUA"]}, {"nome": "VERIFICAÇÕES", "itens": ["ÁGUA", "ENERGIA"]}, {"nome": "PINTURA", "itens": ["PINTURA EXTERNA", "PINTURA INTERNA"]}, {"nome": "EXTRAS", "itens": ["PAISAGISMO: GRAMA", "ACABAMENTOS", "REJUNTE E LIMPEZA", "VISTORIAS"]}];
+const APTS = ['101', '102', '201', '202'], VAL = { A: 25, B: 50, C: 75, D: 100 };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ok = r => { if (r.error) throw r.error; return r.data; };
+const msg = e => (e && e.message) || 'Erro inesperado.';
+const fmtDH = d => new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3000); }
+const lembrar = (k, v) => { try { v === undefined ? null : localStorage.setItem('tmc_' + k, v); return localStorage.getItem('tmc_' + k); } catch (e) { return null; } };
+// Busca todas as linhas (o Supabase devolve no máximo 1000 por vez)
+async function todos(q) { let r = [], i = 0; for (;;) { const d = ok(await q().range(i, i + 999)); r = r.concat(d); if (d.length < 1000) return r; i += 1000; } }
+
+let perfil, editor = false, obras = [], status = {}, pesos = [], hist = [];
+const st = { tela: 'c', obra: null, bloco: 0, apt: -1, aberta: -1 };
+
+// ===== DADOS =====
+async function carregar() {
+  obras = await todos(() => sb.from('obras').select('nome,blocos').order('nome'));
+  const linhas = await todos(() => sb.from('crono_status').select('obra,setor,item,apto,nivel'));
+  status = {}; linhas.forEach(r => { (status[r.obra] ??= {})[r.setor + '|' + r.item + '|' + r.apto] = r.nivel; });
+  const ps = ok(await sb.from('crono_pesos').select('*'));
+  pesos = SETORES.map((_, i) => { const x = ps.find(p => p.setor === i); return x ? +x.peso : 0; });
+  if (!pesos.some(p => p > 0)) pesos = SETORES.map(() => +(100 / SETORES.length).toFixed(2)); // sem pesos cadastrados: todos iguais
+  const ativas = obras.filter(o => o.blocos > 0);
+  if (!ativas.some(o => o.nome === st.obra)) st.obra = (ativas.find(o => o.nome === lembrar('obra')) || ativas[0])?.nome ?? null;
+}
+const registrar = texto => sb.from('historico').insert({ modulo: 'cronograma', usuario: perfil.nome, texto }).then(() => {}, () => {});
+
+// ===== CÁLCULOS =====
+const ob = () => obras.find(o => o.nome === st.obra);
+const mapa = nome => status[nome] || {};
+const cols = () => { const b = st.bloco * 4; return st.apt < 0 ? [b, b + 1, b + 2, b + 3] : [b + st.apt]; };
+const todasCols = o => [...Array(o.blocos * 4).keys()];
+const pI = (m, si, ii, cs) => cs.reduce((a, c) => a + (VAL[m[si + '|' + ii + '|' + c]] || 0), 0) / cs.length;
+const pS = (m, si, cs) => SETORES[si].itens.reduce((a, _, ii) => a + pI(m, si, ii, cs), 0) / SETORES[si].itens.length;
+const pO = (m, cs) => { const t = pesos.reduce((a, b) => a + b, 0) || 1; return SETORES.reduce((a, _, si) => a + pS(m, si, cs) * pesos[si], 0) / t; };
+const nomeApto = c => 'Bloco ' + (Math.floor(c / 4) + 1) + ' apto ' + APTS[c % 4];
+
+// ===== AÇÕES =====
+async function marca(si, ii, L) {
+  if (!editor) return;
+  const o = st.obra, cs = cols(), m = (status[o] ??= {});
+  document.body.classList.add('busy');
+  try {
+    if (L) ok(await sb.from('crono_status').upsert(cs.map(apto => ({ obra: o, setor: si, item: ii, apto, nivel: L, atualizado_por: perfil.nome, atualizado_em: new Date().toISOString() }))));
+    else ok(await sb.from('crono_status').delete().eq('obra', o).eq('setor', si).eq('item', ii).in('apto', cs));
+    cs.forEach(c => { if (L) m[si + '|' + ii + '|' + c] = L; else delete m[si + '|' + ii + '|' + c]; });
+    registrar(`${o} • Bloco ${st.bloco + 1} ${st.apt < 0 ? '(4 aptos)' : 'apto ' + APTS[st.apt]} • ${SETORES[si].itens[ii]}: ${L ? L + ' (' + VAL[L] + '%)' : 'zerado'}`);
+    render();
+  } catch (e) { toast('Não foi possível salvar: ' + msg(e)); }
+  document.body.classList.remove('busy');
+}
+async function mudaPeso(si, v) {
+  v = parseFloat(String(v).replace(',', '.'));
+  if (isNaN(v) || v < 0) { toast('Informe um peso válido.'); return render(); }
+  try { ok(await sb.from('crono_pesos').upsert({ setor: si, peso: v })); pesos[si] = v; registrar(`Peso do setor ${SETORES[si].nome}: ${v}%`); render(); }
+  catch (e) { toast('Não foi possível salvar: ' + msg(e)); }
+}
+async function addObra() {
+  const nome = $('on').value.trim(), b = parseInt($('ob').value);
+  if (!nome || !(b > 0)) return toast('Informe o nome e a quantidade de blocos.');
+  if (obras.some(o => o.nome.toLowerCase() === nome.toLowerCase())) return toast('Essa obra já existe. Ajuste os blocos dela na lista abaixo.');
+  try {
+    ok(await sb.from('obras').insert({ nome, blocos: b }));
+    obras.push({ nome, blocos: b }); obras.sort((a, c) => a.nome.localeCompare(c.nome));
+    st.obra = nome; st.bloco = 0; registrar(`Obra cadastrada: ${nome} (${b} blocos, ${b * 4} aptos)`); go('c');
+  } catch (e) { toast('Não foi possível cadastrar: ' + msg(e)); }
+}
+async function editObra(i) {
+  const o = obras[i];
+  const nome = prompt('Nome da obra (muda em todo o sistema, inclusive na Prestação de Contas):', o.nome); if (nome === null) return;
+  const b = parseInt(prompt(`Quantidade de blocos de ${nome.trim()} (0 = não aparece no cronograma):`, o.blocos)); if (isNaN(b) || b < 0) return toast('Quantidade inválida.');
+  const novo = nome.trim() || o.nome;
+  try {
+    ok(await sb.from('obras').update({ nome: novo, blocos: b }).eq('nome', o.nome));
+    if (novo !== o.nome) { status[novo] = status[o.nome]; delete status[o.nome]; if (st.obra === o.nome) st.obra = novo; }
+    registrar(`Obra ${o.nome}${novo !== o.nome ? ' renomeada para ' + novo : ''}: ${b} blocos`);
+    o.nome = novo; o.blocos = b; if (st.obra === novo && st.bloco >= b) st.bloco = 0;
+    if (!obras.some(x => x.nome === st.obra && x.blocos > 0)) st.obra = obras.find(x => x.blocos > 0)?.nome ?? null;
+    render();
+  } catch (e) { toast('Não foi possível salvar: ' + msg(e)); }
+}
+
+// ===== TELAS =====
+function rC() {
+  const ativas = obras.filter(o => o.blocos > 0);
+  if (!ativas.length) return `<div class="card">Nenhuma obra com blocos cadastrados.${editor ? ' Vá na aba <b>Obras</b> e informe os blocos.' : ''}</div>`;
+  const o = ob(), m = mapa(o.nome), cs = cols(), B = o.blocos;
+  let h = `<div class="card"><select id="selObra" aria-label="Obra">${ativas.map(x => `<option value="${esc(x.nome)}" ${x.nome === o.nome ? 'selected' : ''}>${esc(x.nome)} (${x.blocos} blocos)</option>`).join('')}</select>
+  <div class="chips">${[...Array(B).keys()].map(i => `<button class="${i === st.bloco ? 'on' : ''}" data-bloco="${i}">Bloco ${i + 1} • ${pO(m, [i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 3]).toFixed(0)}%</button>`).join('')}</div>
+  <div class="chips" style="margin-top:6px"><button class="${st.apt < 0 ? 'on' : ''}" data-apt="-1">Todos</button>${APTS.map((a, i) => `<button class="${i === st.apt ? 'on' : ''}" data-apt="${i}">Apto ${a}</button>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><div><div class="muted">${st.apt < 0 ? 'Bloco ' + (st.bloco + 1) : 'Bloco ' + (st.bloco + 1) + ' • Apto ' + APTS[st.apt]}</div><div class="big">${pO(m, cs).toFixed(1)}%</div></div><div><div class="muted">Obra inteira</div><div class="big">${pO(m, todasCols(o)).toFixed(1)}%</div></div></div>
+  <div class="bar"><i style="width:${pO(m, cs)}%"></i></div><p class="muted">A = 25% • B = 50% • C = 75% • D = 100%${st.apt < 0 && editor ? ' • Em "Todos", a marcação vale para os 4 aptos do bloco.' : ''}</p></div>`;
+  SETORES.forEach((s, si) => {
+    const p = pS(m, si, cs);
+    h += `<div class="card"><div class="sech" data-abre="${si}"><span>${esc(s.nome)}</span><span>${p.toFixed(0)}% ${st.aberta === si ? '▲' : '▼'}</span></div><div class="bar" style="margin-top:6px"><i style="width:${p}%"></i></div>`;
+    if (st.aberta === si) {
+      h += `<div class="muted peso" style="margin-top:6px">Peso do setor: ${editor ? `<input type="number" min="0" step="0.01" value="${pesos[si]}" data-peso="${si}">` : `<b>${pesos[si]}</b>`} %</div>`;
+      s.itens.forEach((n, ii) => {
+        const vals = cs.map(c => m[si + '|' + ii + '|' + c] || ''), cur = vals.every(v => v === vals[0]) ? vals[0] : null;
+        h += `<div class="item"><span>${esc(n)}<br><b class="muted">${pI(m, si, ii, cs).toFixed(0)}%${cur === null ? ' • misto' : ''}</b></span><div class="lt">${['', 'A', 'B', 'C', 'D'].map(L => `<button class="${cur === L && L ? 'on c' + L : ''}" ${editor ? `data-marca="${si}|${ii}|${L}"` : 'disabled'} aria-label="${L || 'zerar'}">${L || '–'}</button>`).join('')}</div></div>`;
+      });
+    }
+    h += '</div>';
+  });
+  const soma = pesos.reduce((a, b) => a + b, 0);
+  return h + `<div class="card muted">Soma dos pesos: ${soma.toFixed(1)}%${Math.abs(soma - 100) > 0.5 ? ' (o ideal é 100%)' : ''}.</div>`;
+}
+function rO() {
+  return `<div class="card editor"><b>Nova obra</b><input id="on" placeholder="Nome da obra"><input id="ob" type="number" min="1" inputmode="numeric" placeholder="Quantidade de blocos (cada bloco = 4 aptos)"><button class="btn" id="btnAddObra">Cadastrar obra</button>
+  <p class="muted">As obras são as mesmas da Prestação de Contas e do Estoque. Uma obra com 0 blocos não aparece no cronograma.</p></div>
+  <div class="card"><b>Obras</b><table>${obras.map((o, i) => `<tr><td>${esc(o.nome)}<div class="muted">${o.blocos ? `${o.blocos} blocos • ${o.blocos * 4} aptos • ${pO(mapa(o.nome), todasCols(o)).toFixed(1)}%` : 'sem blocos (fora do cronograma)'}</div></td><td class="editor" style="text-align:right"><button class="pq" data-edobra="${i}">✏️ Editar</button></td></tr>`).join('') || '<tr><td class="muted">Nenhuma obra.</td></tr>'}</table></div>`;
+}
+function rH() {
+  return `<div class="card"><b>Histórico do cronograma</b><table>${hist.map(x => `<tr><td>${esc(x.texto)}<div class="muted">${fmtDH(x.criado_em)}${x.usuario ? ' • ' + esc(x.usuario) : ''}</div></td></tr>`).join('') || '<tr><td class="muted">Sem registros.</td></tr>'}</table></div>`;
+}
+function render() {
+  if (st.obra) lembrar('obra', st.obra);
+  $('app').innerHTML = st.tela === 'c' ? rC() : st.tela === 'o' ? rO() : rH();
+}
+async function go(t) {
+  st.tela = t; document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('on', b.dataset.tela === t));
+  if (t === 'h') { $('app').innerHTML = '<div class="card">Carregando…</div>'; try { hist = ok(await sb.from('historico').select('*').eq('modulo', 'cronograma').order('criado_em', { ascending: false }).limit(300)); } catch (e) { toast(msg(e)); } }
+  render();
+}
+
+// ===== EVENTOS =====
+document.querySelectorAll('.abas button').forEach(b => b.onclick = () => go(b.dataset.tela));
+$('btnSair').onclick = () => TMC.sair();
+$('app').addEventListener('click', e => {
+  const b = e.target.closest('[data-bloco],[data-apt],[data-abre],[data-marca],[data-edobra],#btnAddObra'); if (!b) return;
+  const d = b.dataset;
+  if (d.bloco) { st.bloco = +d.bloco; render(); }
+  else if (d.apt) { st.apt = +d.apt; render(); }
+  else if (d.abre) { st.aberta = st.aberta === +d.abre ? -1 : +d.abre; render(); }
+  else if (d.marca) { const [si, ii, L] = d.marca.split('|'); marca(+si, +ii, L); }
+  else if (d.edobra) editObra(+d.edobra);
+  else if (b.id === 'btnAddObra') addObra();
+});
+$('app').addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'selObra') { st.obra = t.value; st.bloco = 0; render(); }
+  else if (t.dataset.peso) mudaPeso(+t.dataset.peso, t.value);
+});
+
+(async () => {
+  perfil = await TMC.exigirAcesso('cronograma');
+  editor = perfil.cronograma === 'editar';
+  document.body.classList.toggle('view', !editor);
+  $('quem').textContent = perfil.nome + ' (' + (editor ? 'editor' : 'somente visualização') + ')';
+  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  await carregar();
+  $('carregando').remove(); $('sistema').classList.remove('oculto');
+  render();
+})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+</script>
+</body>
+</html>

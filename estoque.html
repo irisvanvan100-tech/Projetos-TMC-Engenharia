@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#7A8B6F">
+<title>Estoque | TMC Engenharia</title>
+<style>
+:root{--bege:#E3C4A8;--oliva:#7A8B6F;--olivaesc:#5d6d53;--fundo:#F3EFE6;--tinta:#2f352b;--borda:#d8cfbf;--erro:#a3392a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:15px/1.4 "Segoe UI",system-ui,sans-serif}
+button,input,select{font:inherit}
+.oculto{display:none!important}
+header{background:var(--oliva);color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:18px;flex:1}
+header .quem{opacity:.9;font-size:13px}
+header .marca{height:32px;background:#fff;border-radius:6px;padding:2px 6px}
+header a,header button{background:#fff;color:var(--oliva);border:1px solid #fff;border-radius:6px;padding:6px 12px;text-decoration:none;cursor:pointer}
+.abas{display:flex;gap:6px;padding:10px 12px 0;max-width:900px;margin:auto}
+.abas button{flex:1;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:10px;padding:9px 6px;cursor:pointer}
+.abas button.on{background:var(--oliva);color:#fff;font-weight:600}
+main{padding:12px;max-width:900px;margin:auto}
+.card{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:12px;margin-bottom:12px}
+select,input{padding:10px;border-radius:10px;border:1px solid var(--borda);width:100%;margin:4px 0;background:#fff}
+.btn{background:var(--oliva);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600;width:100%;margin:4px 0;cursor:pointer}
+.btn.sec{background:var(--bege);color:var(--tinta)}
+.btn:disabled{opacity:.6}
+.pq{border:1px solid var(--borda);background:#fff;border-radius:8px;padding:5px 9px;cursor:pointer}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.chips{display:flex;gap:6px;overflow:auto;padding-bottom:4px;margin:6px 0}.chips button{white-space:nowrap;border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:20px;padding:7px 12px;cursor:pointer}.chips button.on{background:var(--oliva);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:6px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+.neg{color:var(--erro);font-weight:700}
+.muted{color:#777;font-size:12px}
+label.muted{display:block;margin-top:6px}
+.resumo{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.resumo div{flex:1;min-width:140px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:10px 12px}.resumo b{display:block;font-size:20px;color:var(--olivaesc)}
+.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:20}.modal img{max-width:95%;max-height:90%;border-radius:6px}
+body.view .editor{display:none!important}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}#toast.show{opacity:1}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
+@media(max-width:480px){header{gap:6px;padding:8px 10px}header .quem{display:none}header h1{font-size:16px}header a,header button{padding:5px 9px}}
+</style>
+</head>
+<body>
+<p id="carregando" style="padding:24px">Carregando…</p>
+<div id="sistema" class="oculto">
+  <header>
+    <img class="marca" src="logo.jpg" alt="TMC Engenharia">
+    <h1>Estoque</h1>
+    <span class="quem" id="quem"></span>
+    <a class="oculto" id="linkInicio" href="index.html">Início</a>
+    <button id="btnSair">Sair</button>
+  </header>
+  <div class="abas">
+    <button data-tela="s" class="on">📦 Saldo</button>
+    <button data-tela="m">🔁 Entradas e saídas</button>
+  </div>
+  <main id="app"></main>
+</div>
+<div class="modal oculto" id="mod"><img id="modimg" alt="Foto da nota fiscal"></div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ok = r => { if (r.error) throw r.error; return r.data; };
+const msg = e => (e && e.message) || 'Erro inesperado.';
+const brl = n => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const num = n => Number(n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+const fmtDH = d => new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+const lerNum = v => { v = String(v).trim(); return parseFloat(v.includes(',') ? v.replace(/\./g, '').replace(',', '.') : v); };
+function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3000); }
+async function todos(q) { let r = [], i = 0; for (;;) { const d = ok(await q().range(i, i + 999)); r = r.concat(d); if (d.length < 1000) return r; i += 1000; } }
+
+let perfil, editor = false, materiais = [], movs = [], obras = [], resumo = {};
+const st = { tela: 's', cat: 'TODAS', busca: '', obraFiltro: '' };
+
+// ===== DADOS =====
+async function carregar() {
+  [materiais, movs, obras] = await Promise.all([
+    todos(() => sb.from('materiais').select('*').order('categoria').order('nome')),
+    todos(() => sb.from('movimentos').select('*').order('id')),
+    todos(() => sb.from('obras').select('nome').order('nome'))
+  ]);
+  calcula();
+}
+// Saldo, último preço e preço médio de cada material (opcionalmente só de uma obra)
+function calcula() {
+  resumo = {};
+  movs.forEach(m => {
+    if (st.obraFiltro && m.obra !== st.obraFiltro) return;
+    const r = (resumo[m.material] ??= { saldo: 0, ent: 0, valor: 0, ult: null });
+    const q = +m.quantidade;
+    if (m.tipo === 'E') { r.saldo += q; if (+m.preco > 0) { r.ent += q; r.valor += q * m.preco; r.ult = +m.preco; } }
+    else r.saldo -= q;
+  });
+}
+const registrar = texto => sb.from('historico').insert({ modulo: 'estoque', usuario: perfil.nome, texto }).then(() => {}, () => {});
+
+// Foto da nota: reduz para no máximo 1600px antes de enviar
+function comprime(f) {
+  return new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => { const k = Math.min(1, 1600 / Math.max(i.width, i.height)), c = document.createElement('canvas'); c.width = i.width * k; c.height = i.height * k; c.getContext('2d').drawImage(i, 0, 0, c.width, c.height); c.toBlob(b => b ? res(b) : rej(new Error('Foto inválida')), 'image/jpeg', 0.7); };
+    i.onerror = () => rej(new Error('Não consegui abrir a foto.'));
+    i.src = URL.createObjectURL(f);
+  });
+}
+
+// ===== AÇÕES =====
+async function salvaMov() {
+  const tipo = $('mt').value, material = $('mm').value.trim(), q = lerNum($('mq').value), obra = $('mo').value || null;
+  const mat = materiais.find(x => x.nome.toLowerCase() === material.toLowerCase());
+  if (!mat) return toast(material ? 'Material não cadastrado. Use "+ Novo material" primeiro.' : 'Escolha o material.');
+  if (!(q > 0)) return toast('Informe a quantidade.');
+  if (tipo === 'S' && (resumo[mat.nome]?.saldo ?? 0) - q < 0 && !st.obraFiltro && !confirm(`O saldo de ${mat.nome} vai ficar negativo. Lançar mesmo assim?`)) return;
+  const bt = $('btnSalvar'); bt.disabled = true; bt.textContent = 'Salvando…';
+  let foto = null;
+  try {
+    const arq = tipo === 'E' && $('mf').files[0];
+    if (arq) {
+      const blob = await comprime(arq);
+      foto = new Date().toISOString().slice(0, 7) + '/' + Date.now() + '.jpg';
+      ok(await sb.storage.from('notas').upload(foto, blob, { contentType: 'image/jpeg' }));
+    }
+    const novo = {
+      tipo, material: mat.nome, quantidade: q, obra, usuario: perfil.nome, foto,
+      preco: tipo === 'E' ? (lerNum($('mp').value) || 0) : 0,
+      fornecedor: tipo === 'E' ? $('mfo').value.trim() : '',
+      nota: tipo === 'E' ? $('mnf').value.trim() : ''
+    };
+    movs.push(ok(await sb.from('movimentos').insert(novo).select().single()));
+    calcula(); toast((tipo === 'E' ? 'Entrada' : 'Saída') + ' salva.');
+    render();
+  } catch (e) {
+    if (foto) sb.storage.from('notas').remove([foto]);
+    toast('Não foi possível salvar: ' + msg(e)); bt.disabled = false; bt.textContent = 'Salvar';
+  }
+}
+async function novoMat() {
+  const nome = (prompt('Nome do novo material:') || '').trim().toUpperCase(); if (!nome) return;
+  if (materiais.some(m => m.nome === nome)) return toast('Esse material já existe.');
+  const categoria = (prompt('Categoria:', st.cat !== 'TODAS' ? st.cat : '') || 'OUTROS').trim().toUpperCase();
+  try {
+    materiais.push(ok(await sb.from('materiais').insert({ nome, categoria }).select().single()));
+    materiais.sort((a, b) => a.categoria.localeCompare(b.categoria) || a.nome.localeCompare(b.nome));
+    registrar(`Material cadastrado: ${nome} (${categoria})`); render();
+    const mm = $('mm'); if (mm) mm.value = nome;
+  } catch (e) { toast('Não foi possível cadastrar: ' + msg(e)); }
+}
+async function delMov(id) {
+  const m = movs.find(x => x.id === id);
+  if (!confirm(`Excluir o lançamento "${m.tipo === 'E' ? 'Entrada' : 'Saída'} de ${num(m.quantidade)} × ${m.material}"?`)) return;
+  try {
+    ok(await sb.from('movimentos').delete().eq('id', id));
+    if (m.foto) sb.storage.from('notas').remove([m.foto]);
+    movs = movs.filter(x => x.id !== id); calcula();
+    registrar(`Excluiu ${m.tipo === 'E' ? 'entrada' : 'saída'}: ${num(m.quantidade)} × ${m.material}${m.obra ? ' (' + m.obra + ')' : ''}, lançada em ${fmtDH(m.criado_em)} por ${m.usuario || '?'}`);
+    render();
+  } catch (e) { toast('Não foi possível excluir: ' + msg(e)); }
+}
+async function verFoto(caminho) {
+  try { const d = ok(await sb.storage.from('notas').createSignedUrl(caminho, 600)); $('modimg').src = d.signedUrl; $('mod').classList.remove('oculto'); }
+  catch (e) { toast('Não consegui abrir a foto: ' + msg(e)); }
+}
+
+// ===== TELAS =====
+const selObras = (id, vazio) => `<select id="${id}" aria-label="Obra"><option value="">${vazio}</option>${obras.map(o => `<option value="${esc(o.nome)}" ${id === 'fo' && o.nome === st.obraFiltro ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select>`;
+function formLanc() {
+  return `<div class="card editor"><b>Lançar movimento</b>
+  <div class="row"><select id="mt" aria-label="Tipo"><option value="E">⬆️ Entrada (chegou)</option><option value="S">⬇️ Saída (usado)</option></select>${selObras('mo', 'Obra (opcional)')}</div>
+  <input list="dl" id="mm" placeholder="Material (digite para buscar)" autocomplete="off"><datalist id="dl">${materiais.map(m => `<option value="${esc(m.nome)}">${esc(m.categoria)}</option>`).join('')}</datalist>
+  <input id="mq" inputmode="decimal" placeholder="Quantidade">
+  <div id="ent"><div class="row"><input id="mp" inputmode="decimal" placeholder="Preço unitário R$"><input id="mnf" placeholder="Nº da nota"></div><input id="mfo" placeholder="Fornecedor">
+  <label class="muted" for="mf">Foto da nota fiscal (opcional)</label><input id="mf" type="file" accept="image/*" capture="environment"></div>
+  <button class="btn" id="btnSalvar">Salvar</button></div>`;
+}
+function linhasSaldo() {
+  const b = st.busca.toLowerCase();
+  const lista = materiais.filter(m => (st.cat === 'TODAS' || m.categoria === st.cat) && m.nome.toLowerCase().includes(b));
+  return lista.map(m => {
+    const r = resumo[m.nome], s = r ? r.saldo : 0;
+    return `<tr><td>${esc(m.nome)}<div class="muted">${esc(m.categoria)}</div></td><td class="n ${s < 0 ? 'neg' : ''}">${num(s)}</td><td class="n">${r && r.ult != null ? brl(r.ult) + '<div class="muted">méd. ' + brl(r.valor / r.ent) + '</div>' : '–'}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="muted">Nenhum material encontrado.</td></tr>';
+}
+function rS() {
+  const cats = ['TODAS', ...new Set(materiais.map(m => m.categoria))];
+  const comSaldo = materiais.filter(m => (resumo[m.nome]?.saldo ?? 0) > 0).length, neg = materiais.filter(m => (resumo[m.nome]?.saldo ?? 0) < 0).length;
+  const gasto = Object.values(resumo).reduce((a, r) => a + r.valor, 0);
+  return formLanc() + `<div class="resumo"><div>Materiais com saldo<b>${comSaldo}</b></div><div>Saldo negativo<b class="${neg ? 'neg' : ''}">${neg}</b></div><div>Total comprado${st.obraFiltro ? ' (obra)' : ''}<b>${brl(gasto)}</b></div></div>
+  <div class="card">${selObras('fo', 'Todas as obras')}
+  <input id="busca" placeholder="🔍 Buscar material" value="${esc(st.busca)}" autocomplete="off">
+  <div class="chips">${cats.map(c => `<button class="${c === st.cat ? 'on' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+  <button class="btn sec editor" id="btnNovoMat">+ Novo material</button>
+  <table><thead><tr><th>Material</th><th class="n">Saldo</th><th class="n">Últ. preço</th></tr></thead><tbody id="tabSaldo">${linhasSaldo()}</tbody></table></div>`;
+}
+function rM() {
+  const lista = movs.filter(m => !st.obraFiltro || m.obra === st.obraFiltro).slice().reverse().slice(0, 200);
+  return formLanc() + `<div class="card">${selObras('fo', 'Todas as obras')}<b>Últimos lançamentos</b><table>${lista.map(m => `<tr><td>${m.tipo === 'E' ? '⬆️' : '⬇️'} ${num(m.quantidade)} × ${esc(m.material)}
+    <div class="muted">${fmtDH(m.criado_em)}${m.usuario ? ' • ' + esc(m.usuario) : ''}${m.obra ? ' • ' + esc(m.obra) : ''}${m.fornecedor ? ' • ' + esc(m.fornecedor) : ''}${m.nota ? ' • NF ' + esc(m.nota) : ''}${+m.preco ? ' • ' + brl(m.preco) + '/un' : ''}</div></td>
+    <td>${m.foto ? `<button class="pq" data-foto="${esc(m.foto)}">🧾 Nota</button>` : ''}</td><td class="editor"><button class="pq" data-del="${m.id}" aria-label="Excluir">🗑</button></td></tr>`).join('') || '<tr><td class="muted">Nada lançado ainda.</td></tr>'}</table></div>`;
+}
+function render() { $('app').innerHTML = st.tela === 's' ? rS() : rM(); }
+function go(t) { st.tela = t; document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('on', b.dataset.tela === t)); render(); }
+
+// ===== EVENTOS =====
+document.querySelectorAll('.abas button').forEach(b => b.onclick = () => go(b.dataset.tela));
+$('btnSair').onclick = () => TMC.sair();
+$('mod').onclick = () => { $('mod').classList.add('oculto'); $('modimg').src = ''; };
+$('app').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.cat) { st.cat = b.dataset.cat; render(); }
+  else if (b.dataset.foto) verFoto(b.dataset.foto);
+  else if (b.dataset.del) delMov(+b.dataset.del);
+  else if (b.id === 'btnNovoMat') novoMat();
+  else if (b.id === 'btnSalvar') salvaMov();
+});
+$('app').addEventListener('change', e => {
+  if (e.target.id === 'mt') $('ent').classList.toggle('oculto', e.target.value !== 'E');
+  if (e.target.id === 'fo') { st.obraFiltro = e.target.value; calcula(); render(); }
+});
+$('app').addEventListener('input', e => {
+  if (e.target.id === 'busca') { st.busca = e.target.value; $('tabSaldo').innerHTML = linhasSaldo(); }
+});
+
+(async () => {
+  perfil = await TMC.exigirAcesso('estoque');
+  editor = perfil.estoque === 'editar';
+  document.body.classList.toggle('view', !editor);
+  $('quem').textContent = perfil.nome + ' (' + (editor ? 'editor' : 'somente visualização') + ')';
+  if (TMC.modulos(perfil).length > 1) $('linkInicio').classList.remove('oculto');
+  await carregar();
+  $('carregando').remove(); $('sistema').classList.remove('oculto');
+  render();
+})().catch(e => { $('carregando').textContent = 'Erro ao carregar: ' + msg(e); });
+</script>
+</body>
+</html>

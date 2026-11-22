@@ -42,8 +42,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 
   <section id="menu" class="oculto">
     <h1 id="ola"></h1>
-    <a class="modulo oculto" id="mFolha" href="folha_ponto.html"><b>Folha de Ponto</b><small id="nFolha"></small></a>
-    <a class="modulo oculto" id="mPrest" href="prestacao_contas.html"><b>Prestação de Contas</b><small id="nPrest"></small></a>
+    <div id="listaModulos"></div>
     <button class="sec" data-sair>Sair</button>
   </section>
 
@@ -60,7 +59,6 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 <script src="config.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const PAGINAS = { folha: 'folha_ponto.html', prestacao: 'prestacao_contas.html' };
 const NIVEL = { ver: 'Somente visualização', editar: 'Visualizar e editar' };
 let soSenha = false;
 
@@ -74,13 +72,11 @@ async function rotear() {
   try {
     if (!(await TMC.sessao())) return mostrar('entrada');
     const p = await TMC.perfil();
-    const modulos = p ? ['folha', 'prestacao'].filter(m => p[m] !== 'nenhum') : [];
+    const modulos = TMC.modulos(p);
     if (!modulos.length) return mostrar('semAcesso');
-    if (modulos.length === 1) return location.replace(PAGINAS[modulos[0]]);
+    if (modulos.length === 1) return location.replace(TMC.MODULOS[modulos[0]].pagina);
     $('ola').textContent = 'Olá, ' + p.nome;
-    [['folha', 'mFolha', 'nFolha'], ['prestacao', 'mPrest', 'nPrest']].forEach(([m, a, n]) => {
-      $(a).classList.toggle('oculto', p[m] === 'nenhum'); $(n).textContent = NIVEL[p[m]] || '';
-    });
+    $('listaModulos').innerHTML = modulos.map(m => `<a class="modulo" href="${TMC.MODULOS[m].pagina}"><b>${TMC.MODULOS[m].titulo}</b><small>${NIVEL[p[m]] || ''}</small></a>`).join('');
     mostrar('menu');
   } catch (e) { mostrar('entrada'); $('erro').textContent = 'Erro: ' + (e.message || e); }
 }

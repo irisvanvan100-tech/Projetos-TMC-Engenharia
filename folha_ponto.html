@@ -146,7 +146,7 @@ async function iniciar() {
   $('#carregando').remove(); $('#sistema').classList.remove('oculto');
   $('#quem').textContent = p.nome + ' (' + (editor ? 'editor' : 'somente visualização') + ')';
   document.querySelectorAll('.editor').forEach(b => b.classList.toggle('oculto', !editor));
-  if (p.prestacao !== 'nenhum') $('#linkInicio').classList.remove('oculto');
+  if (TMC.modulos(p).length > 1) $('#linkInicio').classList.remove('oculto');
   await carregarQuinzenas();
 }
 
