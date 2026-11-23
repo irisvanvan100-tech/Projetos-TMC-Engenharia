@@ -58,6 +58,47 @@ textarea{width:100%;min-height:140px;padding:10px;border-radius:10px;border:1px 
 .valor td{border-color:#ffffff33}
 .valor .muted{color:#f3efe6}
 tr.tot td{border-top:2px solid var(--borda);background:var(--fundo)}
+.abas button{font-size:14px}
+@media (max-width:480px){.abas{flex-wrap:wrap}.abas button{flex:1 1 45%;font-size:13px;padding:8px 4px}}
+/* compras e modelo */
+.ck{display:flex;gap:8px;align-items:flex-start;margin:6px 0;cursor:pointer}
+.ck input{width:auto;margin:3px 0 0}
+.ck small{display:block;color:#777;font-size:12px}
+.cl{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.ci{border:1px solid var(--borda);border-radius:8px;padding:8px 10px}
+.ci.on{border-color:var(--oliva);box-shadow:0 0 0 1px var(--oliva);background:#f7f9f5}
+.nums{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0}
+.nums span{flex:1;min-width:58px;background:var(--fundo);border-radius:6px;padding:3px 6px;font-size:11px;color:#666}
+.nums b{display:block;font-size:14px;color:var(--tinta);font-variant-numeric:tabular-nums}
+.nums .fx b,.fx{color:var(--erro);font-weight:700}
+.pr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.pr small{color:#777}
+.qt{margin-left:auto;display:flex;align-items:center;gap:6px}
+.qt input{width:90px;margin:0;padding:6px 8px}
+.fabC{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--fundo);border-top:1px solid var(--borda);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.fabC .btn{max-width:900px;display:block;margin:0 auto}
+body:has(.fabC:not([hidden])) main{padding-bottom:80px}
+.mi{border-bottom:1px solid #eee;padding:8px 0}
+.mg{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;margin-top:4px}
+.mg label{flex:1;min-width:70px;font-size:11px;color:#777}
+.mg input{margin:2px 0 0;padding:6px 8px}
+.cbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:794px}
+.cbar #cNome{flex:1;min-width:200px;margin:0}
+.cbar .btn{width:auto;margin:0}
+/* folha da lista de compras (A4 em pé, papel branco) */
+.folhaC{width:794px;min-height:1123px;background:#fff;color:#1c1c1c;box-shadow:0 2px 14px #0000002a;padding:40px 48px;font:12px/1.4 Arial,Helvetica,sans-serif}
+.fc-cab{display:flex;gap:20px;align-items:center;border-bottom:3px solid var(--oliva);padding-bottom:12px}
+.fc-cab img{width:130px}
+.fc-cab h3{margin:0;font-size:20px}
+.fc-info{display:flex;gap:0;border:1px solid #d9d2c3;border-radius:6px;margin:12px 0}
+.fc-info span{flex:1;padding:6px 10px;border-right:1px solid #d9d2c3;font-weight:700}
+.fc-info span:last-child{border-right:0}
+.fc-info small{display:block;font-size:9px;font-weight:400;color:#666;text-transform:uppercase}
+.folhaC table{font-size:12px}
+.folhaC th{background:var(--oliva);color:#fff;padding:6px}
+.folhaC td{border-bottom:1px solid #e2dccf;padding:5px 6px}
+.folhaC tfoot td{background:#efe8dc;font-weight:700;text-align:right}
+.fc-nota{font-size:10px;color:#666}
 .modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:20}
 .modal img{max-width:95%;max-height:90%;border-radius:6px}
 </style>
@@ -74,15 +115,28 @@ tr.tot td{border-top:2px solid var(--borda);background:var(--fundo)}
 </header>
   <div class="abas">
     <button data-tela="s" class="on">📦 Saldo</button>
-    <button data-tela="m">🔁 Entradas e saídas</button>
+    <button data-tela="m">🔁 Movimentos</button>
+    <button data-tela="c">🛒 Compras</button>
+    <button data-tela="p">📐 Modelo</button>
   </div>
   <main id="app"></main>
 </div>
 <div class="modal oculto" id="mod"><img id="modimg" alt="Foto da nota fiscal"></div>
+<div class="fabC" id="fabC" hidden><button type="button" class="btn"></button></div>
+<div class="overlay" id="ovC" role="dialog" aria-modal="true" aria-label="Lista de compras" hidden>
+  <div class="ovbar"><b>Lista de compras</b><button class="claro" id="cBaixar" type="button">⬇ Baixar PDF</button><button class="vidro" id="cFechar" type="button">Fechar</button></div>
+  <div class="ovbody">
+    <div class="ovnote cbar"><input id="cNome" placeholder="Nome da lista" aria-label="Nome da lista">
+      <label class="ck"><input type="checkbox" id="cPrecos"> Mostrar preços no PDF</label>
+      <button id="cGuardar" type="button" class="btn">💾 Guardar lista</button></div>
+    <div id="scaleBoxC" style="overflow:hidden;max-width:794px;margin:0 auto"><div class="scaler" id="scalerC"><article class="folhaC" id="paperC"></article></div></div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script src="comum.js"></script>
+<script src="estoque_compras.js"></script>
 <script>
 
 let perfil, editor = false, materiais = [], movs = [], obras = [], resumo = {}, apelidos = {};
@@ -94,7 +148,8 @@ async function carregar() {
   [materiais, movs, obras] = await Promise.all([
     todos(() => sb.from('materiais').select('*').order('categoria').order('nome')),
     todos(() => sb.from('movimentos').select('*').order('id')),
-    todos(() => sb.from('crono_obras').select('nome').order('nome'))
+    todos(() => sb.from('crono_obras').select('nome,blocos').order('nome')),
+    carregarCompras()
   ]);
   try { (await todos(() => sb.from('material_apelidos').select('texto,material'))).forEach(a => apelidos[a.texto] = a.material); } catch (e) { /* tabela ainda não criada: segue sem aprendizado */ }
   if (st.obraFiltro && !obras.some(o => o.nome === st.obraFiltro)) st.obraFiltro = '';
@@ -349,8 +404,8 @@ function rM() {
 function render() {
   const ml = $('ml'); if (ml) st.lista = ml.value;
   if (!obras.length) { $('app').innerHTML = '<div class="card">Nenhuma obra cadastrada. As obras são cadastradas no <b>Cronograma</b> (aba Obras).</div>'; return; }
-  $('app').innerHTML = st.tela === 's' ? rS() : rM();
-  desenhaConf();
+  $('app').innerHTML = { s: rS, m: rM, c: rC, p: rP }[st.tela]();
+  desenhaConf(); atualizaBarra();
 }
 function go(t) { st.tela = t; document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('on', b.dataset.tela === t)); render(); }
 

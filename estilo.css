@@ -25,3 +25,16 @@ header.topo .prog i{display:block;height:100%;background:#fff;transition:width .
 
 /* quem só visualiza não vê botões de edição */
 body.view .editor{display:none!important}
+
+/* janela por cima da tela (prévia do PDF, assinatura, avisos) */
+.overlay{position:fixed;inset:0;z-index:20;background:#e7e1d4;display:flex;flex-direction:column}
+.ovbar{display:flex;align-items:center;gap:8px;background:var(--oliva);color:#fff; padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ovbar b{flex:1;font:800 16px "Segoe UI",system-ui,sans-serif}
+.ovbar button{border:0;border-radius:6px;padding:9px 14px;font-weight:700}
+.ovbar .claro{background:#fff;color:#4a5a41}
+.ovbar .vidro{background:#ffffff26;color:#fff}
+.ovbody{flex:1;overflow:auto;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ovnote{max-width:1123px;margin:0 auto 10px;font-size:13px;color:var(--tinta)}
+.ovnote ul{margin:4px 0 0;padding-left:18px;color:#b3261e}
+#scaleBox{overflow:hidden;max-width:1123px;margin:0 auto}
+.scaler{transform-origin:top left}

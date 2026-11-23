@@ -103,7 +103,7 @@ textarea{min-height:72px;resize:vertical}
       <h2>Nova pendência</h2>
       <form id="frm" autocomplete="off">
         <div class="row">
-          <div><label class="f" for="obra">Obra</label><select id="obra"></select></div>
+          <div><label class="f" for="obra">Obra</label><input type="text" id="obra" list="obraList" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="Escolha ou digite a obra"><datalist id="obraList"></datalist></div>
           <div><label class="f" for="apto">Local</label><input type="text" id="apto" list="aptoList" spellcheck="false" placeholder="Ex.: Bloco 1 • Apto 101"><datalist id="aptoList"></datalist></div>
         </div>
         <label class="f">Cômodo</label>
@@ -154,14 +154,17 @@ async function carregar() {
 }
 // Obras = as do cronograma + as que já têm pendência (ex.: vindas de uma vistoria)
 function listaObras() { return [...new Set([...cronoObras.map(o => o.nome), ...itens.map(x => x.obra)])].sort((a, b) => a.localeCompare(b, 'pt')); }
+// Obra escolhida (o campo aceita escolher da lista ou digitar uma obra nova)
+let obraSel = '';
 function montaObras() {
-  const l = listaObras(), atual = $('obra').value || mem.ler('obra');
-  $('obra').innerHTML = l.map(o => `<option>${esc(o)}</option>`).join('') || '<option value="">Cadastre uma obra no Cronograma</option>';
-  if (l.includes(atual)) $('obra').value = atual;
+  const l = listaObras();
+  $('obraList').innerHTML = l.map(o => `<option value="${esc(o)}">`).join('');
+  obraSel = obraSel || (l.includes(mem.ler('obra')) ? mem.ler('obra') : l[0] || '');
+  $('obra').value = obraSel;
   locais();
 }
 function locais() {
-  const nome = $('obra').value, o = cronoObras.find(x => x.nome === nome), l = ['Área comum'];
+  const nome = obraSel, o = cronoObras.find(x => x.nome === nome), l = ['Área comum'];
   if (o) for (let b = 1; b <= o.blocos; b++) APTS.forEach(a => l.push(`Bloco ${b} • Apto ${a}`));
   itens.filter(x => x.obra === nome && x.local && !l.includes(x.local)).forEach(x => l.push(x.local));
   $('aptoList').innerHTML = [...new Set(l)].map(x => `<option value="${esc(x)}">`).join('');
@@ -174,7 +177,15 @@ function chips() {
   $('outroCom').hidden = comodo !== 'Outro';
 }
 $('comodos').onclick = e => { const b = e.target.closest('button'); if (!b) return; comodo = b.dataset.c; chips(); if (comodo === 'Outro') $('outroCom').focus(); };
-$('obra').onchange = () => { mem.gravar('obra', $('obra').value); $('apto').value = ''; locais(); render(); };
+// Ao tocar no campo, ele fica vazio para mostrar a lista inteira; se sair sem escolher, volta a obra de antes
+$('obra').onfocus = () => { $('obra').placeholder = obraSel || 'Escolha ou digite a obra'; $('obra').value = ''; };
+$('obra').onblur = () => { if (!$('obra').value.trim()) $('obra').value = obraSel; };
+$('obra').onchange = () => {
+  const digitado = $('obra').value.trim(); if (!digitado) return;
+  // obra que já existe (mesmo com maiúsculas/minúsculas diferentes) é reaproveitada; obra nova fica em maiúsculas
+  obraSel = listaObras().find(o => o.toLowerCase() === digitado.toLowerCase()) || UP(digitado);
+  $('obra').value = obraSel; mem.gravar('obra', obraSel); $('apto').value = ''; locais(); render();
+};
 ['desc', 'resp', 'mat'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('falta')));
 
 function limpaForm() {
@@ -185,7 +196,8 @@ $('btnCancelar').onclick = () => { limpaForm(); render(); };
 $('frm').onsubmit = async e => {
   e.preventDefault();
   const com = comodo === 'Outro' ? $('outroCom').value.trim() : comodo, desc = UP($('desc').value.trim());
-  if (!$('obra').value) return $('erro').textContent = 'Cadastre uma obra no Cronograma primeiro.';
+  if (!obraSel) { $('obra').classList.add('falta'); return $('erro').textContent = 'Escolha ou digite a obra.'; }
+  $('obra').classList.remove('falta');
   if (!com) return $('erro').textContent = 'Escreva o nome do cômodo.';
   const faltando = [];
   if (!desc) faltando.push(['desc', 'a pendência']);
@@ -198,12 +210,12 @@ $('frm').onsubmit = async e => {
     return $(faltando[0][0]).focus();
   }
   $('erro').textContent = '';
-  const dados = { obra: $('obra').value, local: $('apto').value.trim() || 'Área comum', comodo: com, descricao: desc, responsavel: $('resp').value.trim(), material: $('mat').value.trim() };
+  const dados = { obra: obraSel, local: $('apto').value.trim() || 'Área comum', comodo: com, descricao: desc, responsavel: $('resp').value.trim(), material: $('mat').value.trim() };
   const b = $('btnSalvar'); b.disabled = true;
   try {
     if (editando) { ok(await sb.from('pendencias').update(dados).eq('id', editando)); Object.assign(itens.find(x => x.id === editando), dados); }
     else itens.push(ok(await sb.from('pendencias').insert({ ...dados, criado_por: perfil.nome }).select().single()));
-    mem.gravar('local', dados.local); limpaForm(); render(); $('desc').focus(); toast('Pendência salva.');
+    mem.gravar('local', dados.local); limpaForm(); montaObras(); render(); $('desc').focus(); toast('Pendência salva.');
   } catch (err) { $('erro').textContent = 'Não foi possível salvar: ' + msg(err); }
   b.disabled = false;
 };
@@ -212,7 +224,7 @@ $('lista').onclick = async e => {
   const b = e.target.closest('button'); if (!b) return;
   const id = +b.dataset.id, it = itens.find(x => x.id === id);
   if (b.dataset.a === 'edit') {
-    editando = id; $('obra').value = it.obra; locais(); $('apto').value = it.local;
+    editando = id; obraSel = it.obra; $('obra').value = obraSel; locais(); $('apto').value = it.local;
     if (COMODOS.includes(it.comodo)) comodo = it.comodo; else { comodo = 'Outro'; $('outroCom').value = it.comodo; }
     chips(); $('desc').value = it.descricao; $('resp').value = it.responsavel; $('mat').value = it.material;
     $('btnSalvar').textContent = 'Salvar alteração'; $('btnCancelar').hidden = false;
@@ -226,7 +238,7 @@ $('lista').onclick = async e => {
 };
 
 // ===== LISTA E PRÉVIA =====
-const obraAtual = () => $('obra').value;
+const obraAtual = () => obraSel;
 const daObra = () => itens.filter(x => x.obra === obraAtual());
 function ordem(a, b) {
   const la = a.local === 'Área comum' ? 'zz' : a.local, lb = b.local === 'Área comum' ? 'zz' : b.local;

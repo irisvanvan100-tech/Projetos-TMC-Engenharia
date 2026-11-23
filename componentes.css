@@ -19,17 +19,6 @@ textarea::placeholder{text-transform:none}
 .btn{border:0;border-radius:6px;padding:12px 14px;font-weight:700;background:var(--accent);color:var(--accent-fg);width:100%}
 .fab{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line); padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .fab .btn{max-width:760px;margin:0 auto;display:block}
-.overlay{position:fixed;inset:0;z-index:20;background:var(--desk);display:flex;flex-direction:column}
-.ovbar{display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-fg); padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.ovbar b{flex:1;font:800 16px var(--display)}
-.ovbar button{border:0;border-radius:6px;padding:9px 14px;font-weight:700}
-.ovbar .claro{background:#fff;color:#4a5a41}
-.ovbar .vidro{background:#ffffff26;color:var(--accent-fg)}
-.ovbody{flex:1;overflow:auto;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.ovnote{max-width:1123px;margin:0 auto 10px;font-size:13px;color:var(--fg)}
-.ovnote ul{margin:4px 0 0;padding-left:18px;color:var(--nc)}
-#scaleBox{overflow:hidden;max-width:1123px;margin:0 auto}
-.scaler{transform-origin:top left}
 .acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:480px){.acoes{grid-template-columns:1fr}}
 .btn.sec{background:var(--surface);color:var(--accent-strong);border:1.5px solid var(--accent)}
