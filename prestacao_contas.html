@@ -46,6 +46,7 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 #modal .box{background:var(--card);border-radius:14px;padding:12px;max-width:min(92vw,720px);max-height:94vh;overflow:auto}
 #modal img{max-width:100%;max-height:62vh;display:block;margin:0 auto;border-radius:8px}
 #modal p{margin:10px 0 0;font-size:14px}
+#dZerar::backdrop{background:rgba(46,52,42,.5)}
 </style>
 </head>
 <body>
@@ -103,6 +104,9 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
 </main>
 </div>
 
+<dialog id="dZerar" style="border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:22px;width:min(440px,92vw)">
+  <h3 id="zTit" style="margin:0 0 10px"></h3><ul id="zPassos" style="list-style:none;padding:0;margin:0 0 10px;line-height:1.7"></ul>
+  <p id="zRes" style="margin:0 0 14px"></p><button id="zOk">OK</button></dialog>
 <div id="modal" class="hide"><div class="box"><img id="mImg" alt="comprovante"><p id="mCap"></p>
 <div class="row" style="margin-top:10px"><button class="sec" id="mFecha">Fechar</button><button class="sec edit" id="mCamT">📷 Trocar</button><button class="sec edit" id="mGalT">🖼️ Trocar</button><button class="edit" id="mDel" style="background:var(--bad)">Excluir foto</button></div></div></div>
 <input type="file" id="inCamT" accept="image/*" capture="environment" class="hide">
@@ -302,27 +306,39 @@ async function todosArquivos() {
   }
   return out;
 }
+// Janela que mostra cada etapa do "Zerar tudo" e o resultado conferido no banco
+const zLinha = (txt, cor) => { const li = document.createElement("li"); li.textContent = txt; if (cor) li.style.color = `var(--${cor})`; $("zPassos").appendChild(li); return li; };
+$("zOk").onclick = () => $("dZerar").close();
 $("bZerar").onclick = async () => {
   if (leitor) return;
   if (!confirm("Você já gerou o PDF da prestação de contas?\n\nIsso vai APAGAR todos os lançamentos, todas as fotos e zerar o caixa. Não dá para desfazer.")) return;
   if ((prompt("Para confirmar, digite ZERAR:") || "").trim().toUpperCase() !== "ZERAR") return alert("Cancelado. Nada foi apagado.");
-  $("bZerar").disabled = true;
+  $("bZerar").disabled = true; $("zPassos").innerHTML = ""; $("zTit").textContent = "Zerando a prestação de contas…"; $("zRes").textContent = ""; $("zOk").disabled = true;
+  $("dZerar").showModal();
   const ok = r => { if (r.error) throw r.error; return r; };
-  try {
-    st("Apagando fotos…");
-    const arqs = await todosArquivos();
+  const conta = async t => ok(await sb.from(t).select("*", {count:"exact", head:true})).count || 0;
+  const etapa = async (txt, fn) => { const li = zLinha("⏳ " + txt);
+    try { const r = await fn(); li.textContent = "✅ " + txt + (r ? ": " + r : ""); li.style.color = "var(--olive)"; return true; }
+    catch (x) { li.textContent = "❌ " + txt + ": " + (x.message || x); li.style.color = "var(--bad)"; return false; } };
+  const nL = rows.length;
+  await etapa("Apagar fotos", async () => { const arqs = await todosArquivos();
     for (let i = 0; i < arqs.length; i += 100) ok(await sb.storage.from(BUCKET).remove(arqs.slice(i, i + 100)));
-    st("Apagando lançamentos…");
-    ok(await sb.from("comprovantes").delete().gt("id", 0));
-    ok(await sb.from("lancamentos").delete().gt("id", 0));
-    ok(await sb.from("caixa").upsert({id:1, recebido:0}));
-    // Confere se o banco apagou mesmo (sem permissão ele não apaga e não avisa)
-    const conta = async t => ok(await sb.from(t).select("*", {count:"exact", head:true})).count || 0;
-    const sobrou = (await conta("lancamentos")) + (await todosArquivos()).length;
-    st(""); await load();
-    alert(sobrou ? `Atenção: ${sobrou} item(ns) não foram apagados. Confira se o seu usuário tem permissão "editar" na Prestação de Contas.` : "Pronto! Tudo foi zerado.");
-  } catch (x) { fail(x); st(""); }
-  $("bZerar").disabled = false;
+    return `${arqs.length} foto(s)`; });
+  await etapa("Apagar lançamentos", async () => { ok(await sb.from("comprovantes").delete().gt("id", 0)); ok(await sb.from("lancamentos").delete().gt("id", 0)); return `${nL} lançamento(s)`; });
+  await etapa("Zerar o valor recebido em caixa", async () => { ok(await sb.from("caixa").upsert({id:1, recebido:0})); });
+  // Confere no banco: sem permissão, o banco não apaga e não avisa
+  let sobra = null;
+  try { sobra = { l: await conta("lancamentos"), f: (await todosArquivos()).length, c: +((ok(await sb.from("caixa").select("recebido").eq("id", 1).maybeSingle()).data || {}).recebido || 0) }; }
+  catch (x) { zLinha("❌ Não consegui conferir no banco: " + (x.message || x), "bad"); }
+  await load();
+  if (sobra && !sobra.l && !sobra.f && !sobra.c) {
+    $("zTit").textContent = "✅ Apagado com sucesso";
+    $("zRes").textContent = "Conferido no banco: 0 lançamentos, 0 fotos e caixa em R$ 0,00. Obras e categorias continuam cadastradas.";
+  } else {
+    $("zTit").textContent = "⚠️ Nem tudo foi apagado";
+    $("zRes").textContent = sobra ? `Ainda no banco: ${sobra.l} lançamento(s), ${sobra.f} foto(s), caixa ${brl(sobra.c)}. Confira se o seu usuário tem permissão "editar" na Prestação de Contas e mande print desta mensagem.` : "Mande print desta mensagem.";
+  }
+  $("zOk").disabled = false; $("bZerar").disabled = false;
 };
 
 $("bObra").onclick = async () => {
