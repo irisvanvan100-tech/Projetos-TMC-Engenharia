@@ -18,6 +18,15 @@ const hojeISO = () => { const d = new Date(); return new Date(d - d.getTimezoneO
 const fmtData = d => d ? d.split('-').reverse().join('/') : '';
 const fmtDH = d => new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
+// ----- CPF: só números, máscara 000.000.000-00 e conferência dos dígitos verificadores -----
+const soDig = s => String(s).replace(/\D/g, '').slice(0, 11);
+const mascaraCpf = s => { const d = soDig(s); return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})$/, '$1.$2.$3-$4'); };
+function cpfValido(s) {
+  const d = soDig(s); if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+  const dv = n => { let t = 0; for (let i = 0; i < n; i++) t += +d[i] * (n + 1 - i); const r = (t * 10) % 11; return r === 10 ? 0 : r; };
+  return dv(9) === +d[9] && dv(10) === +d[10];
+}
+
 // ----- Supabase -----
 const ok = r => { if (r.error) throw r.error; return r.data; };
 const msg = e => (e && e.message) || 'Erro inesperado.';

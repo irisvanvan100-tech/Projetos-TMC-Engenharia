@@ -71,6 +71,19 @@ create table if not exists pontos (
   valor numeric(2,1) not null check (valor in (0,0.5,1)),
   unique (funcionario_id, data)
 );
+-- Cadastro de funcionários (histórico de quem trabalhou com a TMC). CPF só com números, sem repetir.
+create table if not exists funcionarios (
+  id uuid primary key default gen_random_uuid(),
+  primeiro_nome text not null,
+  segundo_nome text not null,
+  cpf text not null unique check (cpf ~ '^[0-9]{11}$'),
+  funcao text not null default 'servente' check (funcao in ('servente','pedreiro')),
+  valor_diaria numeric(10,2) not null default 0,   -- última diária usada (sugestão para a próxima quinzena)
+  criado_em timestamptz not null default now()
+);
+-- cada linha da quinzena aponta para o cadastro (linhas antigas ficam sem, até completar o CPF)
+alter table funcionarios_quinzena add column if not exists funcionario_id uuid references funcionarios(id) on delete set null;
+create index if not exists funcionarios_quinzena_func_idx on funcionarios_quinzena (funcionario_id);
 
 -- ----------------------------------------------------------------------------
 -- 3) CRONOGRAMA (andamento por obra / bloco / apartamento)
@@ -350,7 +363,7 @@ language sql stable security definer set search_path = public as $$ select nivel
 do $$ declare
   -- tabela -> módulo que dá acesso
   acesso constant jsonb := '{
-    "quinzenas": "folha", "funcionarios_quinzena": "folha", "pontos": "folha",
+    "quinzenas": "folha", "funcionarios_quinzena": "folha", "pontos": "folha", "funcionarios": "folha",
     "obras": "prestacao", "categorias": "prestacao", "lancamentos": "prestacao", "caixa": "prestacao", "comprovantes": "prestacao",
     "crono_obras": "cronograma", "crono_status": "cronograma", "crono_pesos": "cronograma",
     "materiais": "estoque", "movimentos": "estoque", "material_apelidos": "estoque",

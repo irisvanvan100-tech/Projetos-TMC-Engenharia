@@ -98,14 +98,6 @@ const porExtenso = d => { if (!d) return '____'; const [a, m, dd] = d.split('-')
 const dataLocal = d => { if (!d) return ''; const [a, m, dd] = d.split('-'); return `${dd} / ${MESES[+m - 1]} / de ${a}`; };
 const chave = (o, u) => (String(o).trim() + '|' + String(u).trim()).toLowerCase();
 
-// CPF: máscara e conferência dos dígitos verificadores
-const soDig = s => String(s).replace(/\D/g, '').slice(0, 11);
-const mascaraCpf = s => { const d = soDig(s); return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})$/, '$1.$2.$3-$4'); };
-function cpfValido(s) {
-  const d = soDig(s); if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
-  const dv = n => { let t = 0; for (let i = 0; i < n; i++) t += +d[i] * (n + 1 - i); const r = (t * 10) % 11; return r === 10 ? 0 : r; };
-  return dv(9) === +d[9] && dv(10) === +d[10];
-}
 
 let perfil, editor = false, vistorias = [], ultimas = new Map(), registros = [], editando = null;
 const f = { vistoria: null, cpf: '', end: '', cidade: 'Itaitinga', data: hojeISO() };
