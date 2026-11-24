@@ -100,7 +100,6 @@ const pO = (m, cs) => { const t = pesos.reduce((a, b) => a + b, 0) || 1; return 
 async function marca(si, ii, L) {
   if (!editor) return;
   const o = st.obra, cs = cols(), m = (status[o] ??= {});
-  if (st.bloco < 0 && !confirm(`Marcar "${SETORES[si].itens[ii]}" como ${L ? L + ' (' + VAL[L] + '%)' : 'zerado'} em ${cs.length} apartamentos (${nomeSel()})?`)) return;
   document.body.classList.add('busy');
   try {
     if (L) ok(await sb.from('crono_status').upsert(cs.map(apto => ({ obra: o, setor: si, item: ii, apto, nivel: L, atualizado_por: perfil.nome, atualizado_em: new Date().toISOString() }))));
