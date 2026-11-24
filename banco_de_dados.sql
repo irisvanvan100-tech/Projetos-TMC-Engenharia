@@ -40,6 +40,14 @@ create index if not exists comprovantes_lanc_idx on comprovantes (lancamento_id)
 -- Categorias iniciais: só entram na primeira vez (tabela vazia). O que você excluir pelo sistema não volta.
 insert into categorias (nome) select v from unnest(array['Material','Ferramentas','Elétrica','Hidráulica','Acabamento','Transporte','Mão de obra','Outros']) v
 where not exists (select 1 from categorias);
+-- Caixa de uma versão antiga sem chave: tira as linhas repetidas (fica a de maior valor) e cria a chave
+do $$ begin
+  if not exists (select 1 from pg_constraint where conrelid = 'public.caixa'::regclass and contype = 'p') then
+    delete from caixa where id is null;
+    delete from caixa a using caixa b where a.id = b.id and (a.recebido, a.ctid) < (b.recebido, b.ctid);
+    alter table caixa add primary key (id);
+  end if;
+end $$;
 insert into caixa (id, recebido) values (1, 0) on conflict do nothing;
 
 

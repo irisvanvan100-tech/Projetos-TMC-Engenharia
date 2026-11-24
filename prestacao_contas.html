@@ -131,14 +131,14 @@ async function load() {
     sb.from("obras").select("nome").order("nome"),
     sb.from("categorias").select("nome").order("nome"),
     sb.from("lancamentos").select("*").order("data", {ascending:false}).order("id", {ascending:false}),
-    sb.from("caixa").select("recebido").eq("id", 1).maybeSingle(),
+    sb.from("caixa").select("recebido").eq("id", 1),
     sb.from("comprovantes").select("*").order("id")
   ]);
   const e = o.error || c.error || l.error || k.error || fo.error;
   if (e) return fail(e);
   fail(null);
   obras = o.data.map(x => x.nome); cats = c.data.map(x => x.nome);
-  rows = l.data; recebido = k.data ? +k.data.recebido : 0; fotos = fo.data; urls = {};
+  rows = l.data; recebido = k.data.length ? +k.data[0].recebido : 0; fotos = fo.data; urls = {};
   if (fotos.length) { const {data} = await sb.storage.from(BUCKET).createSignedUrls(fotos.map(f => f.caminho), 3600);
     (data || []).forEach(x => { if (x.signedUrl) urls[x.path] = x.signedUrl; }); }
   const sel = $("flt").value;
@@ -241,10 +241,18 @@ $("mCamT").onclick = () => $("inCamT").click(); $("mGalT").onclick = () => $("in
   const f = e.target.files[0], velha = fotoAberta; e.target.value = ""; if (leitor || !f || !velha) return;
   try { st("Trocando foto…"); await enviar(velha.lancamento_id, [f]); await apagarFoto(velha); fechar(); st(""); await load(); } catch (x) { fail(x); st(""); }
 });
+// Grava o valor recebido e confere no banco se gravou mesmo
+async function salvarCaixa(n) {
+  const u = await sb.from("caixa").update({recebido:n}).eq("id", 1).select("id"); if (u.error) throw u.error;
+  if (!u.data.length) { const i = await sb.from("caixa").insert({id:1, recebido:n}); if (i.error) throw i.error; }
+  const {data, error} = await sb.from("caixa").select("recebido").eq("id", 1); if (error) throw error;
+  if (!data.length || data.some(r => +r.recebido !== n)) throw new Error(`o banco não gravou (continua ${data.map(r => brl(r.recebido)).join(", ") || "vazio"})`);
+}
 $("bRec").onclick = async () => {
   const v = prompt("Dinheiro recebido / adiantamentos (R$):", recebido); if (v === null) return;
   const n = parseFloat(String(v).replace(",", ".")); if (isNaN(n)) return;
-  const {error} = await sb.from("caixa").upsert({id:1, recebido:n}); if (error) return fail(error); load();
+  try { await salvarCaixa(n); } catch (x) { alert("Não consegui salvar o valor recebido: " + (x.message || x)); }
+  load();
 };
 
 async function iniciar() {
@@ -325,10 +333,10 @@ $("bZerar").onclick = async () => {
     for (let i = 0; i < arqs.length; i += 100) ok(await sb.storage.from(BUCKET).remove(arqs.slice(i, i + 100)));
     return `${arqs.length} foto(s)`; });
   await etapa("Apagar lançamentos", async () => { ok(await sb.from("comprovantes").delete().gt("id", 0)); ok(await sb.from("lancamentos").delete().gt("id", 0)); return `${nL} lançamento(s)`; });
-  await etapa("Zerar o valor recebido em caixa", async () => { ok(await sb.from("caixa").upsert({id:1, recebido:0})); });
+  await etapa("Zerar o valor recebido em caixa", async () => { await salvarCaixa(0); });
   // Confere no banco: sem permissão, o banco não apaga e não avisa
   let sobra = null;
-  try { sobra = { l: await conta("lancamentos"), f: (await todosArquivos()).length, c: +((ok(await sb.from("caixa").select("recebido").eq("id", 1).maybeSingle()).data || {}).recebido || 0) }; }
+  try { sobra = { l: await conta("lancamentos"), f: (await todosArquivos()).length, c: ok(await sb.from("caixa").select("recebido").eq("id", 1)).data.reduce((a, r) => a + (+r.recebido || 0), 0) }; }
   catch (x) { zLinha("❌ Não consegui conferir no banco: " + (x.message || x), "bad"); }
   await load();
   if (sobra && !sobra.l && !sobra.f && !sobra.c) {
