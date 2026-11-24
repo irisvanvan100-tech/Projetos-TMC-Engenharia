@@ -809,3 +809,6 @@ insert into modelo_bloco (material, quantidade, unidade, preco_ref, ordem) value
 on conflict (material) do nothing;
 
 insert into parametros (chave, valor) values ('perda_padrao', 5) on conflict (chave) do nothing;
+
+-- Avisa o Supabase para recarregar a lista de tabelas (evita o erro "schema cache")
+notify pgrst, 'reload schema';
