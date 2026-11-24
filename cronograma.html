@@ -88,7 +88,10 @@ const registrar = texto => sb.from('historico').insert({ modulo: 'cronograma', u
 // ===== CÁLCULOS =====
 const ob = () => obras.find(o => o.nome === st.obra);
 const mapa = nome => status[nome] || {};
-const cols = () => { const b = st.bloco * 4; return st.apt < 0 ? [b, b + 1, b + 2, b + 3] : [b + st.apt]; };
+// apartamentos atingidos pela seleção: bloco -1 = todos os blocos; apto -1 = os 4 aptos
+const blocosSel = () => st.bloco < 0 ? [...Array(ob().blocos).keys()] : [st.bloco];
+const cols = () => blocosSel().flatMap(b => st.apt < 0 ? [b * 4, b * 4 + 1, b * 4 + 2, b * 4 + 3] : [b * 4 + st.apt]);
+const nomeSel = () => (st.bloco < 0 ? 'Todos os blocos' : 'Bloco ' + (st.bloco + 1)) + (st.apt < 0 ? '' : ' • Apto ' + APTS[st.apt]);
 const todasCols = o => [...Array(o.blocos * 4).keys()];
 const pI = (m, si, ii, cs) => cs.reduce((a, c) => a + (VAL[m[si + '|' + ii + '|' + c]] || 0), 0) / cs.length;
 const pS = (m, si, cs) => SETORES[si].itens.reduce((a, _, ii) => a + pI(m, si, ii, cs), 0) / SETORES[si].itens.length;
@@ -98,12 +101,13 @@ const pO = (m, cs) => { const t = pesos.reduce((a, b) => a + b, 0) || 1; return 
 async function marca(si, ii, L) {
   if (!editor) return;
   const o = st.obra, cs = cols(), m = (status[o] ??= {});
+  if (st.bloco < 0 && !confirm(`Marcar "${SETORES[si].itens[ii]}" como ${L ? L + ' (' + VAL[L] + '%)' : 'zerado'} em ${cs.length} apartamentos (${nomeSel()})?`)) return;
   document.body.classList.add('busy');
   try {
     if (L) ok(await sb.from('crono_status').upsert(cs.map(apto => ({ obra: o, setor: si, item: ii, apto, nivel: L, atualizado_por: perfil.nome, atualizado_em: new Date().toISOString() }))));
     else ok(await sb.from('crono_status').delete().eq('obra', o).eq('setor', si).eq('item', ii).in('apto', cs));
     cs.forEach(c => { if (L) m[si + '|' + ii + '|' + c] = L; else delete m[si + '|' + ii + '|' + c]; });
-    registrar(`${o} • Bloco ${st.bloco + 1} ${st.apt < 0 ? '(4 aptos)' : 'apto ' + APTS[st.apt]} • ${SETORES[si].itens[ii]}: ${L ? L + ' (' + VAL[L] + '%)' : 'zerado'}`);
+    registrar(`${o} • ${nomeSel()} (${cs.length} ${cs.length === 1 ? 'apto' : 'aptos'}) • ${SETORES[si].itens[ii]}: ${L ? L + ' (' + VAL[L] + '%)' : 'zerado'}`);
     render();
   } catch (e) { toast('Não foi possível salvar: ' + msg(e)); }
   document.body.classList.remove('busy');
@@ -157,10 +161,10 @@ function rC() {
   if (!ativas.length) return `<div class="card">Nenhuma obra cadastrada.${editor ? ' Vá na aba <b>Obras</b> para cadastrar.' : ''}</div>`;
   const o = ob(), m = mapa(o.nome), cs = cols(), B = o.blocos;
   let h = `<div class="card"><select id="selObra" aria-label="Obra">${ativas.map(x => `<option value="${esc(x.nome)}" ${x.nome === o.nome ? 'selected' : ''}>${esc(x.nome)} (${x.blocos} blocos)</option>`).join('')}</select>
-  <div class="chips">${[...Array(B).keys()].map(i => `<button class="${i === st.bloco ? 'on' : ''}" data-bloco="${i}">Bloco ${i + 1} • ${pO(m, [i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 3]).toFixed(0)}%</button>`).join('')}</div>
-  <div class="chips" style="margin-top:6px"><button class="${st.apt < 0 ? 'on' : ''}" data-apt="-1">Todos</button>${APTS.map((a, i) => `<button class="${i === st.apt ? 'on' : ''}" data-apt="${i}">Apto ${a}</button>`).join('')}</div>
-  <div class="row" style="margin-top:10px"><div><div class="muted">${st.apt < 0 ? 'Bloco ' + (st.bloco + 1) : 'Bloco ' + (st.bloco + 1) + ' • Apto ' + APTS[st.apt]}</div><div class="big">${pO(m, cs).toFixed(1)}%</div></div><div><div class="muted">Obra inteira</div><div class="big">${pO(m, todasCols(o)).toFixed(1)}%</div></div></div>
-  <div class="bar"><i style="width:${pO(m, cs)}%"></i></div><p class="muted">A = 25% • B = 50% • C = 75% • D = 100%${st.apt < 0 && editor ? ' • Em "Todos", a marcação vale para os 4 aptos do bloco.' : ''}</p></div>`;
+  <div class="chips"><button class="${st.bloco < 0 ? 'on' : ''}" data-bloco="-1">Todos os blocos</button>${[...Array(B).keys()].map(i => `<button class="${i === st.bloco ? 'on' : ''}" data-bloco="${i}">Bloco ${i + 1} • ${pO(m, [i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 3]).toFixed(0)}%</button>`).join('')}</div>
+  <div class="chips" style="margin-top:6px"><button class="${st.apt < 0 ? 'on' : ''}" data-apt="-1">Todos os aptos</button>${APTS.map((a, i) => `<button class="${i === st.apt ? 'on' : ''}" data-apt="${i}">Apto ${a}</button>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><div><div class="muted">${nomeSel()}</div><div class="big">${pO(m, cs).toFixed(1)}%</div></div><div><div class="muted">Obra inteira</div><div class="big">${pO(m, todasCols(o)).toFixed(1)}%</div></div></div>
+  <div class="bar"><i style="width:${pO(m, cs)}%"></i></div><p class="muted">A = 25% • B = 50% • C = 75% • D = 100%${editor ? ` • A marcação vale para <b>${cs.length} ${cs.length === 1 ? 'apartamento' : 'apartamentos'}</b> (${nomeSel()}${st.apt < 0 ? ', todos os aptos' : ''}).` : ''}</p></div>`;
   SETORES.forEach((s, si) => {
     const p = pS(m, si, cs);
     h += `<div class="card"><div class="sech" data-abre="${si}"><span>${esc(s.nome)}</span><span>${p.toFixed(0)}% ${st.aberta === si ? '▲' : '▼'}</span></div><div class="bar" style="margin-top:6px"><i style="width:${p}%"></i></div>`;

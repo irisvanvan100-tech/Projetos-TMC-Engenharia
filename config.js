@@ -11,16 +11,17 @@ const sb = supabase.createClient(TMC_CONFIG.SUPABASE_URL, TMC_CONFIG.SUPABASE_KE
 const TMC = {
   // Módulos do sistema: chave = coluna na tabela "perfis"
   MODULOS: {
+    folha:      { pagina: 'folha_ponto.html',      titulo: 'Folha de Ponto' },
     cronograma: { pagina: 'cronograma.html',       titulo: 'Cronograma' },
     estoque:    { pagina: 'estoque.html',          titulo: 'Estoque' },
     vistoria:   { pagina: 'vistoria.html',         titulo: 'Vistoria' },
-    entrega:    { pagina: 'entrega_chaves.html',   titulo: 'Entrega de Chaves' },
     retrabalhos:{ pagina: 'retrabalhos.html',      titulo: 'Retrabalhos' },
-    folha:      { pagina: 'folha_ponto.html',      titulo: 'Folha de Ponto' },
+    entrega:    { pagina: 'entrega_chaves.html',   titulo: 'Entrega de Chaves' },
+    material:   { pagina: 'material.html',         titulo: 'Material' },
     prestacao:  { pagina: 'prestacao_contas.html', titulo: 'Prestação de Contas' }
   },
   async sessao() { return (await sb.auth.getSession()).data.session; },
-  // Perfil do usuário logado: { nome, folha, prestacao, cronograma, estoque, retrabalhos, vistoria, entrega } com níveis 'nenhum' | 'ver' | 'editar'
+  // Perfil do usuário logado: { nome, folha, prestacao, cronograma, estoque, retrabalhos, vistoria, entrega, material } com níveis 'nenhum' | 'ver' | 'editar'
   async perfil() {
     const s = await this.sessao(); if (!s) return null;
     const { data, error } = await sb.from('perfis').select('*').eq('id', s.user.id).maybeSingle();

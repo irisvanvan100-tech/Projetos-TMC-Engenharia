@@ -61,7 +61,8 @@ function rC() {
   ${semPreco ? `<p class="muted">⚠️ ${semPreco} materiais ainda sem preço não entram nesses valores. Preencha na aba 📐 Modelo.</p>` : ''}
   <div class="card"><input id="cBusca" placeholder="🔍 Buscar material" value="${esc(cp.busca)}" autocomplete="off">
     ${chipsCat(plano, cp.cat, 'data-ccat')}
-    <label class="ck"><input type="checkbox" id="cSoFalta" ${cp.soFalta ? 'checked' : ''}> Mostrar só o que falta comprar</label>
+    <div class="cfiltro"><label class="ck"><input type="checkbox" id="cSoFalta" ${cp.soFalta ? 'checked' : ''}> Mostrar só o que falta comprar</label>
+      ${Object.keys(cp.sel).length ? `<button class="pq editor" id="cZerar" type="button">✕ Zerar seleção (${Object.keys(cp.sel).length})</button>` : ''}</div>
     <div class="cl" id="cLista">${lista.map(linhaCompra).join('') || '<p class="muted">Nenhum material.</p>'}</div></div>
   ${rListas()}`;
 }
@@ -174,7 +175,7 @@ $('app').addEventListener('click', async e => {
   const d = b.dataset;
   if (d.ccat) { cp.cat = d.ccat; redesenha(); }
   else if (d.mcat) { cp.catMod = d.mcat; redesenha(); }
-  else if (b.id === 'cNova') { cp.sel = {}; cp.listaId = null; cp.nome = ''; redesenha(); }
+  else if (b.id === 'cNova' || b.id === 'cZerar') { cp.sel = {}; cp.listaId = null; cp.nome = ''; redesenha(); if (b.id === 'cZerar') toast('Seleção zerada.'); }
   else if (d.labrir) {
     const l = listas.find(x => x.id == d.labrir); cp.obra = l.obra; cp.listaId = l.id; cp.nome = l.nome; cp.comPrecos = l.com_precos;
     cp.sel = Object.fromEntries(l.itens.map(x => [x.material, +x.quantidade])); render(); scrollTo(0, 0); toast(`Lista "${l.nome}" aberta.`);

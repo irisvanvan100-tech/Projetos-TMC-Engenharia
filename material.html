@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7A8B6F">
+<title>Material | TMC Engenharia</title>
+<link rel="stylesheet" href="estilo.css">
+<style>
+:root{--olivaesc:#5d6d53;--ok:#3f8f4f;--okbg:#e3f0e1;--apagar:#8a4b0f;--apagarbg:#fbe7cf}
+main{max-width:900px;margin:0 auto;padding-block:12px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+.card{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:14px}
+.card h2{margin:0 0 10px;font-size:16px}
+label.f{display:block;font-size:12px;font-weight:600;color:#6b7163;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 5px}
+input[type=text],input[inputmode],select,textarea{width:100%;padding:10px;border:1px solid var(--borda);border-radius:6px;background:#fff}
+textarea{min-height:56px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.grid2>div{min-width:0}
+@media (max-width:480px){.grid2{grid-template-columns:1fr}}
+.obrabox{border-left:5px solid var(--oliva)}
+.obrabox select{font-size:17px;font-weight:700}
+.mats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:480px){.mats{grid-template-columns:repeat(2,1fr)}}
+.mats button{border:1.5px solid var(--borda);background:#fff;border-radius:8px;padding:10px 8px;text-align:left}
+.mats button b{display:block;font-size:14px}
+.mats button small{color:#6b7163}
+.mats button[aria-pressed="true"]{border-color:var(--oliva);background:#eef2ea;box-shadow:0 0 0 1px var(--oliva)}
+.qtd{display:flex;align-items:center;gap:8px}
+.qtd button{width:42px;height:42px;border:1px solid var(--borda);background:#fff;border-radius:6px;font-size:20px;font-weight:700}
+.qtd input{width:90px;text-align:center;font-size:18px;font-weight:700}
+.calc{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--fundo);border-radius:8px;padding:10px 12px;margin-top:12px}
+.calc small{display:block;color:#6b7163}
+.calc b{font-size:22px;color:var(--olivaesc)}
+.btn{border:0;border-radius:6px;padding:12px 14px;font-weight:700;background:var(--oliva);color:#fff;width:100%;margin-top:12px}
+.btn.sec{background:#fff;color:var(--olivaesc);border:1.5px solid var(--oliva)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.err{color:var(--erro);font-size:13px;margin:8px 0 0;min-height:1em}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--oliva);background:#fff;color:var(--oliva);border-radius:20px;padding:6px 12px;font-size:14px}
+.chips button[aria-pressed="true"]{background:var(--oliva);color:#fff}
+.filtros{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.filtros select{width:auto;flex:1;min-width:160px}
+.resumo{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.resumo div{flex:1;min-width:140px;background:var(--fundo);border-radius:8px;padding:8px 12px}
+.resumo small{display:block;color:#6b7163;font-size:12px}
+.resumo b{font-size:20px}
+.ent{display:flex;gap:10px;align-items:flex-start;border-top:1px solid #eee;padding:10px 0}
+.ent input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:var(--oliva)}
+.ent .vazio-ck{width:20px;flex:0 0 20px}
+.ent .t{flex:1;min-width:0}
+.ent .t b{display:block}
+.ent .t small{display:block;color:#6b7163;font-size:12px}
+.ent .t i{display:block;font-size:12px;font-style:normal;background:var(--fundo);border-radius:4px;padding:2px 6px;margin-top:3px}
+.ent .v{text-align:right;white-space:nowrap}
+.ent .v b{display:block}
+.ent .v small{color:#6b7163;font-size:12px}
+.ent .del{border:1px solid var(--borda);background:#fff;border-radius:6px;padding:3px 7px;margin-top:4px}
+.pill{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px}
+.pill.apagar{background:var(--apagarbg);color:var(--apagar)}
+.pill.pago{background:var(--okbg);color:var(--ok)}
+.vazio{color:#6b7163;font-size:14px;padding:6px 0}
+.precos{display:grid;grid-template-columns:1fr 140px;gap:8px;align-items:center}
+.precos span{font-weight:600}
+.nota{font-size:12px;color:#6b7163;margin:10px 0 0}
+.fab{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--fundo);border-top:1px solid var(--borda);
+  padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.fab .btn{max-width:900px;display:block;margin:0 auto}
+.ovbar{flex-wrap:wrap}
+.dlg{max-width:520px;margin:0 auto;background:#fff;border:1px solid var(--borda);border-radius:8px;padding:16px}
+.dlg .row{display:flex;gap:10px}.dlg .row .btn{flex:1}
+/* folha A4 em pé (papel branco) */
+.folha{width:794px;min-height:1123px;background:#fff;color:#1c1c1c;box-shadow:0 2px 14px #0000002a;padding:44px 50px;font:12px/1.45 Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
+.fh{display:flex;gap:22px;align-items:center;border-bottom:3px solid var(--oliva);padding-bottom:12px}
+.fh img{width:140px}
+.fh h3{margin:0;font-size:19px}
+.fh div div{color:#555;font-size:12px;margin-top:3px}
+.fi{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #d9d2c3;border-radius:6px;margin:14px 0}
+.fi span{padding:7px 10px;border-right:1px solid #d9d2c3;font-weight:700;font-size:12px}
+.fi span:last-child{border-right:0}
+.fi small{display:block;font-size:9px;font-weight:400;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.folha table{width:100%;border-collapse:collapse}
+.folha th{background:var(--oliva);color:#fff;font-size:10px;text-transform:uppercase;padding:6px;text-align:left}
+.folha td{border-bottom:1px solid #e2dccf;padding:6px;vertical-align:top}
+.folha .n{text-align:right;white-space:nowrap}
+.folha td.obs{color:#555;font-size:11px}
+.folha tfoot td{background:#efe8dc;font-weight:700;font-size:13px}
+.fres{display:flex;gap:10px;margin-top:14px}
+.fres div{flex:1;border:1px solid #d9d2c3;border-radius:6px;padding:8px 10px}
+.fres h5{margin:0 0 4px;font-size:10px;text-transform:uppercase;color:#666}
+.fres ul{margin:0;padding:0}
+.fres li{display:flex;justify-content:space-between;list-style:none;padding:2px 0;border-bottom:1px dotted #d9d2c3}
+.fass{margin-top:auto;padding-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.fass div{border-top:1px solid #1c1c1c;padding-top:4px;text-align:center;font-size:10.5px;color:#555}
+</style>
+</head>
+<body>
+<p id="carregando">Carregando…</p>
+<div id="sistema" class="oculto">
+<header class="topo">
+  <img class="marca" src="logo.jpg" alt="TMC Engenharia">
+  <h1>Material</h1>
+  <span class="quem" id="quem"></span>
+  <a class="btnlink" id="linkInicio" href="index.html" hidden>Início</a>
+  <button id="btnSair" type="button">Sair</button>
+</header>
+<main>
+  <section class="card obrabox">
+    <label class="f" for="obra" style="margin-top:0">1. Obra</label>
+    <select id="obra"></select>
+    <p class="nota" style="margin-top:6px">O registro, a lista de entregas e o PDF são desta obra.</p>
+  </section>
+
+  <section class="card editor">
+    <h2>2. Registrar material que chegou</h2>
+    <label class="f" for="forn">Fornecedor</label><input type="text" id="forn" list="fornList" autocomplete="off" autocapitalize="characters" placeholder="Nome do fornecedor"><datalist id="fornList"></datalist>
+    <label class="f">Material</label>
+    <div class="mats" id="mats"></div>
+    <div class="grid2">
+      <div><label class="f" for="qtd">Quantidade (carradas)</label>
+        <div class="qtd"><button type="button" id="menos" aria-label="Diminuir">−</button><input id="qtd" inputmode="decimal" value="1" aria-label="Quantidade"><button type="button" id="mais" aria-label="Aumentar">+</button></div></div>
+      <div><label class="f" for="obs">Observação (opcional)</label><textarea id="obs" lang="pt-BR" spellcheck="true" placeholder="Ex.: caminhão chegou com meia carrada"></textarea></div>
+    </div>
+    <div class="calc"><div><small>Data e hora (automática)</small><div id="agora"></div></div><div style="text-align:right"><small id="conta"></small><b id="valor"></b></div></div>
+    <p class="err" id="erro" role="alert"></p>
+    <button class="btn" id="registrar" type="button">Registrar chegada</button>
+  </section>
+
+  <section class="card">
+    <h2 id="tituloEnt">Entregas</h2>
+    <div class="filtros"><div class="chips" id="status"></div><select id="fFornecedor" aria-label="Fornecedor"></select></div>
+    <div class="resumo" id="resumo"></div>
+    <div id="lista"></div>
+  </section>
+
+  <section class="card">
+    <h2>Tabela de preços (por carrada)</h2>
+    <div class="precos" id="precos"></div>
+    <p class="nota">Cada entrega guarda o preço do dia em que chegou. Mudar o preço aqui vale só para as próximas entregas.</p>
+  </section>
+</main>
+<div class="fab"><button class="btn" id="gerar" type="button" style="margin-top:0"></button></div>
+</div>
+
+<div class="overlay" id="ov" role="dialog" aria-modal="true" aria-label="Prévia do PDF" hidden>
+  <div class="ovbar"><b>Entregas para pagamento</b><button class="claro" id="baixar" type="button">⬇ Baixar PDF</button><button class="claro editor" id="pagar" type="button">✓ Marcar como pagas</button><button class="vidro" id="fechar" type="button">Fechar</button></div>
+  <div class="ovbody"><div class="ovnote" id="ovnote" style="max-width:794px"></div>
+    <div id="scaleBox" style="max-width:794px"><div class="scaler" id="scaler"><article class="folha" id="folha"></article></div></div></div>
+</div>
+<div class="overlay" id="ovPagar" role="dialog" aria-modal="true" aria-label="Confirmar pagamento" hidden>
+  <div class="ovbar"><b>Marcar como pagas</b></div>
+  <div class="ovbody"><div class="dlg"><p id="pagarTxt"></p><div class="row"><button class="btn sec" id="pagarNao" type="button">Cancelar</button><button class="btn" id="pagarSim" type="button">Sim, foram pagas</button></div></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="comum.js"></script>
+<script>
+const mem = memoria('tmc_mat_');
+let perfil, editor = false, obras = [], precos = [], entregas = [];
+const st = { obra: mem.ler('obra'), material: '', status: 'apagar', fornecedor: '', sel: new Set() };
+const data = d => new Date(d).toLocaleDateString('pt-BR');
+const hora = d => new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const valor = x => x.quantidade * x.preco;
+const somaValor = l => l.reduce((a, x) => a + valor(x), 0);
+const precoDe = m => precos.find(p => p.material === m)?.preco ?? 0;
+
+// ===== DADOS =====
+async function carregar() {
+  [obras, precos, entregas] = await Promise.all([
+    todos(() => sb.from('crono_obras').select('nome').order('nome')),
+    todos(() => sb.from('material_precos').select('*').order('ordem')),
+    todos(() => sb.from('material_entregas').select('*').order('criado_em', { ascending: false }))
+  ]);
+  precos = precos.map(p => ({ ...p, preco: +p.preco }));
+  entregas = entregas.map(x => ({ ...x, quantidade: +x.quantidade, preco: +x.preco }));
+  if (!obras.some(o => o.nome === st.obra)) st.obra = obras[0]?.nome || '';
+  st.material = precos[0]?.material || '';
+  entregas.filter(x => !x.pago_em).forEach(x => st.sel.add(x.id));     // a pagar já vêm marcadas para o PDF
+}
+
+// ===== REGISTRAR CHEGADA =====
+function desenhaMats() {
+  $('mats').innerHTML = precos.map(p => `<button type="button" data-m="${esc(p.material)}" aria-pressed="${p.material === st.material}"><b>${esc(p.material)}</b><small>${brl(p.preco)} / carrada</small></button>`).join('');
+}
+function calcula() {
+  const q = lerNum($('qtd').value) || 0, p = precoDe(st.material);
+  $('agora').textContent = `${data(Date.now())} às ${hora(Date.now())}`;
+  $('conta').textContent = `${num(q)} × ${brl(p)}`; $('valor').textContent = brl(q * p);
+}
+$('mats').onclick = e => { const b = e.target.closest('button'); if (b) { st.material = b.dataset.m; desenhaMats(); calcula(); } };
+$('qtd').oninput = calcula;
+$('menos').onclick = () => { $('qtd').value = num(Math.max(0.5, (lerNum($('qtd').value) || 1) - 1)); calcula(); };
+$('mais').onclick = () => { $('qtd').value = num((lerNum($('qtd').value) || 0) + 1); calcula(); };
+$('registrar').onclick = async () => {
+  const q = lerNum($('qtd').value), fornecedor = UP($('forn').value.trim());
+  if (!st.obra) { $('erro').textContent = 'Cadastre a obra no Cronograma primeiro.'; return; }
+  if (!fornecedor) { $('erro').textContent = 'Informe o fornecedor.'; return $('forn').focus(); }
+  if (!(q > 0)) { $('erro').textContent = 'Informe a quantidade.'; return $('qtd').focus(); }
+  $('erro').textContent = '';
+  const b = $('registrar'); b.disabled = true;
+  try {
+    // data e hora vêm do servidor (criado_em = agora)
+    const nova = ok(await sb.from('material_entregas').insert({ obra: st.obra, fornecedor, material: st.material, quantidade: q, preco: precoDe(st.material), observacao: $('obs').value.trim(), criado_por: perfil.nome }).select().single());
+    nova.quantidade = +nova.quantidade; nova.preco = +nova.preco;
+    entregas.unshift(nova); st.sel.add(nova.id);
+    $('qtd').value = '1'; $('obs').value = ''; calcula(); render();
+    toast(`Registrado em ${st.obra}: ${num(q)} × ${st.material} — ${brl(valor(nova))}`);
+  } catch (e) { $('erro').textContent = 'Não foi possível registrar: ' + msg(e); }
+  b.disabled = false;
+};
+
+// ===== ENTREGAS =====
+const daObra = () => entregas.filter(x => x.obra === st.obra);
+const doFiltro = l => l.filter(x => !st.fornecedor || x.fornecedor === st.fornecedor);
+const selecionadas = () => doFiltro(daObra()).filter(x => !x.pago_em && st.sel.has(x.id));
+function render() {
+  $('obra').innerHTML = obras.map(o => `<option ${o.nome === st.obra ? 'selected' : ''}>${esc(o.nome)}</option>`).join('') || '<option value="">Cadastre a obra no Cronograma</option>';
+  $('tituloEnt').textContent = `3. Entregas de ${st.obra || '—'}`;
+  $('registrar').textContent = `Registrar chegada em ${st.obra || '—'}`;
+  const todosForn = [...new Set(entregas.map(x => x.fornecedor))].sort(), fornObra = [...new Set(daObra().map(x => x.fornecedor))].sort();
+  $('fornList').innerHTML = todosForn.map(f => `<option value="${esc(f)}">`).join('');
+  if (!$('forn').value && todosForn.length) $('forn').value = todosForn[0];
+  if (st.fornecedor && !fornObra.includes(st.fornecedor)) st.fornecedor = '';
+  $('fFornecedor').innerHTML = '<option value="">Todos os fornecedores</option>' + fornObra.map(f => `<option ${f === st.fornecedor ? 'selected' : ''}>${esc(f)}</option>`).join('');
+  $('status').innerHTML = [['apagar', 'A pagar'], ['pagas', 'Pagas'], ['todas', 'Todas']].map(([k, t]) => `<button type="button" data-s="${k}" aria-pressed="${k === st.status}">${t}</button>`).join('');
+  const apagar = doFiltro(daObra()).filter(x => !x.pago_em);
+  const lista = doFiltro(daObra()).filter(x => st.status === 'todas' || (st.status === 'pagas') === !!x.pago_em);
+  $('resumo').innerHTML = `<div><small>A pagar${st.fornecedor ? ' • ' + esc(st.fornecedor) : ''}</small><b>${brl(somaValor(apagar))}</b></div><div><small>Entregas a pagar</small><b>${apagar.length}</b></div>`;
+  $('lista').innerHTML = lista.map(x => `<div class="ent">${x.pago_em ? '<span class="vazio-ck"></span>' : `<input type="checkbox" data-sel="${x.id}" ${st.sel.has(x.id) ? 'checked' : ''} aria-label="Incluir no PDF">`}
+    <div class="t"><b>${num(x.quantidade)} × ${esc(x.material)}</b><small>${data(x.criado_em)} às ${hora(x.criado_em)} • ${esc(x.fornecedor)}${x.criado_por ? ' • ' + esc(x.criado_por) : ''}</small>${x.observacao ? `<i>📝 ${esc(x.observacao)}</i>` : ''}</div>
+    <div class="v"><b>${brl(valor(x))}</b><small>${brl(x.preco)}/carrada</small><br><span class="pill ${x.pago_em ? 'pago' : 'apagar'}">${x.pago_em ? 'paga em ' + data(x.pago_em) : 'a pagar'}</span>
+      ${x.pago_em ? '' : `<br><button class="del editor" data-del="${x.id}" type="button" aria-label="Excluir entrega">🗑</button>`}</div></div>`).join('')
+    || `<p class="vazio">Nenhuma entrega ${st.status === 'pagas' ? 'paga' : st.status === 'apagar' ? 'a pagar' : ''} em ${esc(st.obra)}.</p>`;
+  $('precos').innerHTML = precos.map(p => `<span>${esc(p.material)}</span>${editor ? `<input inputmode="decimal" data-preco="${esc(p.material)}" value="${num(p.preco)}" aria-label="Preço de ${esc(p.material)}">` : `<b>${brl(p.preco)}</b>`}`).join('');
+  const sel = selecionadas();
+  $('gerar').disabled = !sel.length;
+  $('gerar').textContent = sel.length ? `📄 Gerar PDF para pagamento • ${sel.length} ${sel.length === 1 ? 'entrega' : 'entregas'} • ${brl(somaValor(sel))}` : '📄 Marque as entregas a pagar para gerar o PDF';
+}
+$('obra').onchange = () => { st.obra = $('obra').value; mem.gravar('obra', st.obra); st.fornecedor = ''; render(); };
+$('status').onclick = e => { const b = e.target.closest('button'); if (b) { st.status = b.dataset.s; render(); } };
+$('fFornecedor').onchange = () => { st.fornecedor = $('fFornecedor').value; render(); };
+$('lista').onchange = e => { const id = +e.target.dataset.sel; if (!id) return; e.target.checked ? st.sel.add(id) : st.sel.delete(id); render(); };
+$('lista').onclick = async e => {
+  const b = e.target.closest('[data-del]'); if (!b) return;
+  const x = entregas.find(y => y.id == b.dataset.del);
+  if (!confirm(`Excluir a entrega de ${num(x.quantidade)} × ${x.material} (${data(x.criado_em)} às ${hora(x.criado_em)})?`)) return;
+  try { ok(await sb.from('material_entregas').delete().eq('id', x.id)); entregas = entregas.filter(y => y.id !== x.id); st.sel.delete(x.id); render(); toast('Entrega excluída.'); }
+  catch (err) { toast('Não foi possível excluir: ' + msg(err)); }
+};
+$('precos').onchange = async e => {
+  const m = e.target.dataset.preco, v = lerNum(e.target.value); if (!m) return;
+  if (!(v >= 0)) { toast('Preço inválido.'); return render(); }
+  try { ok(await sb.from('material_precos').update({ preco: v }).eq('material', m)); precos.find(p => p.material === m).preco = v; desenhaMats(); calcula(); render(); toast(`Preço de ${m}: ${brl(v)} por carrada`); }
+  catch (err) { toast('Não foi possível salvar: ' + msg(err)); render(); }
+};
+
+// ===== PRÉVIA E PDF =====
+function resumoPdf(sel) {
+  const datas = sel.map(x => x.criado_em).sort(), porMat = {};
+  sel.forEach(x => { const r = (porMat[x.material] ??= { q: 0, v: 0 }); r.q += x.quantidade; r.v += valor(x); });
+  return { fornecedores: [...new Set(sel.map(x => x.fornecedor))].join(', '), periodo: `${data(datas[0])} a ${data(datas.at(-1))}`,
+           agora: new Date(), porMat, total: somaValor(sel), carradas: sel.reduce((a, x) => a + x.quantidade, 0),
+           linhas: sel.slice().sort((a, b) => a.criado_em.localeCompare(b.criado_em)) };
+}
+function folha(sel) {
+  const r = resumoPdf(sel);
+  return `<div class="fh"><img src="logo.jpg" alt="TMC Engenharia"><div><h3>ENTREGAS DE MATERIAL — PARA PAGAMENTO</h3><div>Conferência do fornecedor antes do pagamento</div></div></div>
+    <div class="fi"><span><small>Fornecedor</small>${esc(r.fornecedores)}</span><span><small>Obra</small>${esc(st.obra)}</span><span><small>Período</small>${r.periodo}</span><span><small>Gerado em</small>${data(r.agora)} às ${hora(r.agora)}</span></div>
+    <table><thead><tr><th>Data</th><th>Hora</th><th>Material</th><th class="n">Qtd.</th><th class="n">Valor un.</th><th class="n">Valor</th><th>Observação</th></tr></thead>
+      <tbody>${r.linhas.map(x => `<tr><td>${data(x.criado_em)}</td><td>${hora(x.criado_em)}</td><td>${esc(x.material)}</td><td class="n">${num(x.quantidade)}</td><td class="n">${brl(x.preco)}</td><td class="n">${brl(valor(x))}</td><td class="obs">${esc(x.observacao) || '—'}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="5" class="n">TOTAL A PAGAR</td><td class="n">${brl(r.total)}</td><td></td></tr></tfoot></table>
+    <div class="fres"><div><h5>Resumo por material</h5><ul>${Object.entries(r.porMat).map(([m, v]) => `<li><span>${esc(m)} (${num(v.q)})</span><span>${brl(v.v)}</span></li>`).join('')}</ul></div>
+      <div><h5>Totais</h5><ul><li><span>Entregas</span><span>${sel.length}</span></li><li><span>Carradas</span><span>${num(r.carradas)}</span></li><li><span><b>Total</b></span><span><b>${brl(r.total)}</b></span></li></ul></div></div>
+    <div class="fass"><div>Conferido pelo fornecedor (nome e data)</div><div>TMC Engenharia e Serviços Ltda</div></div>`;
+}
+async function gerarPdf(sel) {
+  const r = resumoPdf(sel), jsPDF = await libsPdf('jspdf', 'autotable'), doc = new jsPDF({ unit: 'mm', format: 'a4' }), M = 14, OLIVA = [122, 139, 111];
+  try { doc.addImage(await logoPdf(), 'JPEG', M, 10, 34, 21); } catch (e) {}
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.text('ENTREGAS DE MATERIAL — PARA PAGAMENTO', 54, 19);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90); doc.text('Conferência do fornecedor antes do pagamento', 54, 25);
+  doc.setTextColor(20); doc.setFontSize(9.5);
+  doc.text(`Fornecedor: ${r.fornecedores}`, M, 38); doc.text(`Obra: ${st.obra}`, M, 43);
+  doc.text(`Período: ${r.periodo}`, 120, 38); doc.text(`Gerado em: ${data(r.agora)} às ${hora(r.agora)}`, 120, 43);
+  doc.autoTable({ startY: 48, margin: { left: M, right: M, bottom: 16 }, headStyles: { fillColor: OLIVA }, styles: { fontSize: 8.5, cellPadding: 1.6, valign: 'top' },
+    head: [['Data', 'Hora', 'Material', 'Qtd.', 'Valor un.', 'Valor', 'Observação']],
+    body: r.linhas.map(x => [data(x.criado_em), hora(x.criado_em), x.material, num(x.quantidade), brl(x.preco), brl(valor(x)), x.observacao || '—']),
+    foot: [[{ content: 'TOTAL A PAGAR', colSpan: 5, styles: { halign: 'right' } }, brl(r.total), '']],
+    footStyles: { fillColor: [239, 232, 220], textColor: 20, fontStyle: 'bold', fontSize: 10 },
+    columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 13 }, 2: { cellWidth: 30 }, 3: { halign: 'right', cellWidth: 12 }, 4: { halign: 'right', cellWidth: 24 }, 5: { halign: 'right', cellWidth: 26 }, 6: { textColor: 90 } } });
+  let y = doc.lastAutoTable.finalY + 6; if (y > 240) { doc.addPage(); y = 20; }
+  doc.autoTable({ startY: y, margin: { left: M, right: 110 }, theme: 'plain', styles: { fontSize: 8.5, cellPadding: 1.2 },
+    head: [[{ content: 'RESUMO POR MATERIAL', colSpan: 2, styles: { textColor: 90, fontSize: 7.5 } }]],
+    body: [...Object.entries(r.porMat).map(([m, v]) => [`${m} (${num(v.q)})`, brl(v.v)]), [`Entregas: ${sel.length} • Carradas: ${num(r.carradas)}`, { content: brl(r.total), styles: { fontStyle: 'bold' } }]],
+    columnStyles: { 1: { halign: 'right' } } });
+  y = Math.max(doc.lastAutoTable.finalY + 28, 255); if (y > 280) { doc.addPage(); y = 40; }
+  doc.setDrawColor(20); doc.line(M, y, M + 80, y); doc.line(116, y, 196, y); doc.setFontSize(8); doc.setTextColor(90);
+  doc.text('Conferido pelo fornecedor (nome e data)', M + 40, y + 4, { align: 'center' }); doc.text('TMC Engenharia e Serviços Ltda', 156, y + 4, { align: 'center' });
+  const n = doc.getNumberOfPages();
+  for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFontSize(7); doc.text('TMC Engenharia • Material • ' + st.obra, M, 290); doc.text(`Página ${i} de ${n}`, 196, 290, { align: 'right' }); }
+  doc.save(nomeArquivo('pagamento_material', st.obra, r.fornecedores, hojeISO()));
+}
+const ajusta = () => encaixarFolha($('scaleBox'), $('scaler'), 794);
+addEventListener('resize', () => { if (!$('ov').hidden) ajusta(); });
+$('gerar').onclick = () => {
+  const sel = selecionadas(); if (!sel.length) return;
+  $('ovnote').innerHTML = new Set(sel.map(x => x.fornecedor)).size > 1 ? '⚠️ Há entregas de mais de um fornecedor. Para mandar a cada um, filtre por fornecedor antes de gerar.' : '';
+  abrirJanela($('ov')); $('folha').innerHTML = folha(sel); ajusta();
+};
+$('fechar').onclick = () => fecharJanela($('ov'));
+$('baixar').onclick = async () => {
+  const b = $('baixar'); b.disabled = true; b.textContent = 'Gerando…';
+  try { await gerarPdf(selecionadas()); } catch (e) { toast('Não foi possível gerar o PDF: ' + msg(e)); }
+  b.disabled = false; b.textContent = '⬇ Baixar PDF';
+};
+$('pagar').onclick = () => {
+  const sel = selecionadas();
+  $('pagarTxt').innerHTML = `Marcar <b>${sel.length} ${sel.length === 1 ? 'entrega' : 'entregas'}</b> de ${esc(st.obra)} como pagas, no total de <b>${brl(somaValor(sel))}</b>?<br><br>Use depois que o fornecedor confirmou e você fez o pagamento.`;
+  abrirJanela($('ovPagar'));
+};
+$('pagarNao').onclick = () => fecharJanela($('ovPagar'));
+$('pagarSim').onclick = async () => {
+  const sel = selecionadas(), agora = new Date().toISOString(), b = $('pagarSim'); b.disabled = true;
+  try {
+    ok(await sb.from('material_entregas').update({ pago_em: agora, pago_por: perfil.nome }).in('id', sel.map(x => x.id)));
+    sel.forEach(x => { x.pago_em = agora; x.pago_por = perfil.nome; st.sel.delete(x.id); });
+    fecharJanela($('ovPagar')); fecharJanela($('ov')); render(); toast(`${sel.length} ${sel.length === 1 ? 'entrega marcada' : 'entregas marcadas'} como paga.`);
+  } catch (e) { toast('Não foi possível marcar: ' + msg(e)); }
+  b.disabled = false;
+};
+addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('ovPagar').hidden) fecharJanela($('ovPagar')); else if (!$('ov').hidden) fecharJanela($('ov')); } });
+
+(async () => {
+  ({ perfil, editor } = await TMC.iniciarPagina('material'));
+  await carregar();
+  desenhaMats(); calcula(); render(); setInterval(calcula, 30000);
+  TMC.mostrarPagina();
+})().catch(TMC.falhaAoAbrir);
+</script>
+</body>
+</html>
