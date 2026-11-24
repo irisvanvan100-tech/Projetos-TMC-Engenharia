@@ -98,7 +98,7 @@ button.sec{background:var(--sand);color:#2e342a}button.ghost{background:none;col
   <div class="row" style="margin-bottom:10px"><label style="flex:1;min-width:180px">Nova obra<input id="nObra" placeholder="Nome da obra"></label><button id="bObra">Adicionar obra</button></div>
   <div class="thumbs" id="lObras"></div></section>
 <section class="edit" style="border-color:var(--bad)"><h2 style="color:var(--bad)">Encerrar prestação de contas</h2>
-  <p style="margin:0 0 10px;color:var(--mute);font-size:13px">Apaga todos os lançamentos e todas as fotos e zera o valor recebido em caixa, para começar uma nova prestação. Obras e categorias continuam cadastradas. Gere o PDF antes: não dá para desfazer.</p>
+  <p style="margin:0 0 10px;color:var(--mute);font-size:13px">Apaga todos os lançamentos, todas as fotos e todas as obras e zera o valor recebido em caixa, para começar uma nova prestação do zero. Só as categorias continuam cadastradas. Gere o PDF antes: não dá para desfazer.</p>
   <button id="bZerar" style="background:var(--bad)">Zerar tudo</button></section>
 </main>
 </div>
@@ -304,17 +304,24 @@ async function todosArquivos() {
 }
 $("bZerar").onclick = async () => {
   if (leitor) return;
-  if (!confirm("Você já gerou o PDF da prestação de contas?\\n\\nIsso vai APAGAR todos os lançamentos, todas as fotos e zerar o caixa. Não dá para desfazer.")) return;
+  if (!confirm("Você já gerou o PDF da prestação de contas?\n\nIsso vai APAGAR todos os lançamentos, todas as fotos, todas as obras e zerar o caixa. Não dá para desfazer.")) return;
   if ((prompt("Para confirmar, digite ZERAR:") || "").trim().toUpperCase() !== "ZERAR") return alert("Cancelado. Nada foi apagado.");
   $("bZerar").disabled = true;
+  const ok = r => { if (r.error) throw r.error; return r; };
   try {
     st("Apagando fotos…");
     const arqs = await todosArquivos();
-    for (let i = 0; i < arqs.length; i += 100) { const r = await sb.storage.from(BUCKET).remove(arqs.slice(i, i + 100)); if (r.error) throw r.error; }
-    st("Apagando lançamentos…");
-    const d = await sb.from("lancamentos").delete().gt("id", 0); if (d.error) throw d.error;
-    const c = await sb.from("caixa").upsert({id:1, recebido:0}); if (c.error) throw c.error;
-    st(""); await load(); alert("Pronto! Tudo foi zerado.");
+    for (let i = 0; i < arqs.length; i += 100) ok(await sb.storage.from(BUCKET).remove(arqs.slice(i, i + 100)));
+    st("Apagando lançamentos e obras…");
+    ok(await sb.from("comprovantes").delete().gt("id", 0));
+    ok(await sb.from("lancamentos").delete().gt("id", 0));
+    ok(await sb.from("obras").delete().neq("nome", ""));
+    ok(await sb.from("caixa").upsert({id:1, recebido:0}));
+    // Confere se o banco apagou mesmo (sem permissão ele não apaga e não avisa)
+    const conta = async t => ok(await sb.from(t).select("*", {count:"exact", head:true})).count || 0;
+    const sobrou = (await conta("lancamentos")) + (await conta("obras")) + (await todosArquivos()).length;
+    st(""); await load();
+    alert(sobrou ? `Atenção: ${sobrou} item(ns) não foram apagados. Confira se o seu usuário tem permissão "editar" na Prestação de Contas.` : "Pronto! Tudo foi zerado.");
   } catch (x) { fail(x); st(""); }
   $("bZerar").disabled = false;
 };

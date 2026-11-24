@@ -37,9 +37,7 @@ create index if not exists lancamentos_data_idx on lancamentos (data desc);
 create index if not exists lancamentos_obra_idx on lancamentos (obra);
 create index if not exists comprovantes_lanc_idx on comprovantes (lancamento_id);
 
--- Dados iniciais: só entram na primeira vez (tabela vazia). O que você excluir pelo sistema não volta.
-insert into obras (nome) select v from unnest(array['Jabuti Park','Jabuti Gardem','Jabuti Casas','Residencial 2','Village 1','Village 2']) v
-where not exists (select 1 from obras);
+-- Categorias iniciais: só entram na primeira vez (tabela vazia). O que você excluir pelo sistema não volta.
 insert into categorias (nome) select v from unnest(array['Material','Ferramentas','Elétrica','Hidráulica','Acabamento','Transporte','Mão de obra','Outros']) v
 where not exists (select 1 from categorias);
 insert into caixa (id, recebido) values (1, 0) on conflict do nothing;
