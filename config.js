@@ -34,6 +34,5 @@ const TMC = {
     const p = await this.perfil();
     if (!p || !p[modulo] || p[modulo] === 'nenhum') { location.replace('index.html'); return new Promise(() => {}); }
     return p;
-  },
-  async sair() { await sb.auth.signOut(); location.replace('index.html'); }
+  }
 };

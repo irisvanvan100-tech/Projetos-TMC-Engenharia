@@ -68,7 +68,7 @@ body.busy{cursor:progress}
 <script>
 const APTS = ['101', '102', '201', '202'], VAL = { A: 25, B: 50, C: 75, D: 100 };
 const mem = memoria('tmc_');
-let perfil, editor = false, obras = [], status = {}, pesos = [], hist = [];
+let perfil, editor = false, aoVivo = false, obras = [], status = {}, pesos = [], hist = [];
 const st = { tela: 'c', obra: null, bloco: 0, apt: -1, aberta: -1 };
 
 // ===== DADOS =====
@@ -82,8 +82,12 @@ async function carregar() {
   status = {}; linhas.forEach(r => { (status[r.obra] ??= {})[r.setor + '|' + r.item + '|' + r.apto] = r.nivel; });
   pesos = SETORES.map((_, i) => { const x = ps.find(p => p.setor === i); return x ? +x.peso : 0; });
   if (!pesos.some(p => p > 0)) pesos = SETORES.map(() => +(100 / SETORES.length).toFixed(2)); // sem pesos cadastrados: todos iguais
-  if (!obras.some(o => o.nome === st.obra)) st.obra = (obras.find(o => o.nome === mem.ler('obra')) || obras[0])?.nome ?? null;
+  escolherObra();
 }
+function escolherObra() { if (!obras.some(o => o.nome === st.obra)) st.obra = (obras.find(o => o.nome === mem.ler('obra')) || obras[0])?.nome ?? null; }
+// Cópia no aparelho: a página abre na hora com ela e se atualiza com o banco em seguida
+const guardar = () => ({ obras, status, pesos });
+const restaurar = d => { ({ obras, status, pesos } = d); escolherObra(); };
 const registrar = texto => sb.from('historico').insert({ modulo: 'cronograma', usuario: perfil.nome, texto }).then(() => {}, () => {});
 
 // ===== CÁLCULOS =====
@@ -190,6 +194,7 @@ function rH() {
 }
 function render() {
   if (st.obra) mem.gravar('obra', st.obra);
+  if (aoVivo) copia.gravar('cronograma', perfil, guardar());     // mantém a cópia com as últimas marcações
   $('app').innerHTML = st.tela === 'c' ? rC() : st.tela === 'o' ? rO() : rH();
 }
 async function go(t) {
@@ -218,9 +223,7 @@ $('app').addEventListener('change', e => {
 });
 
 (async () => {
-  ({ perfil, editor } = await TMC.iniciarPagina('cronograma', carregar));
-  TMC.mostrarPagina();
-  render();
+  await TMC.abrirComCopia('cronograma', { carregar, guardar, restaurar, desenhar: (r, vivo) => { ({ perfil, editor } = r); aoVivo = vivo; render(); } });
 })().catch(TMC.falhaAoAbrir);
 </script>
 </body>

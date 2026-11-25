@@ -134,7 +134,7 @@ $('form').onsubmit = async e => {
   if (error) return $('erro').textContent = motivo(error);
   $('senha').value = ''; rotear();
 };
-document.querySelectorAll('[data-sair]').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.reload(); });
+document.querySelectorAll('[data-sair]').forEach(b => b.onclick = () => TMC.sair());
 
 // ===== PAINEL =====
 const IC = {
@@ -254,26 +254,43 @@ function continuar() {
 }
 $('obras').onclick = e => { const b = e.target.closest('[data-obra]'); if (b) { obraSel = b.dataset.obra; mem.gravar('obra', obraSel); desenha(); } };
 
-async function abrirPainel() {
+const escolheObra = () => { obraSel = obras.find(o => o.nome === mem.ler('obra'))?.nome || obras[0]?.nome || ''; };
+function mostrarPainel() {
   $('ola').innerHTML = `${ola()}, ${esc(P.nome)}<small>${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</small>`;
   tela('painel'); desenha(); continuar();
+}
+// Folha e Prestação de Contas têm valores sensíveis: não ficam na cópia do aparelho
+const NA_COPIA = m => !['folha', 'prestacao'].includes(m);
+
+async function abrirPainel() {
+  mostrarPainel();
   // cada módulo carrega em paralelo (junto com a lista de obras) e o painel se atualiza quando chega
-  mods.filter(m => LEITURAS[m]).forEach(m => LEITURAS[m]().then(r => { D[m] = r; desenha(); }, () => { falhou.add(m); desenha(); }));
+  // se uma leitura falhar, continua mostrando a cópia (quando existe) e avisa na faixa
+  let algumFalhou = false;
+  const leituras = mods.filter(m => LEITURAS[m]).map(m => LEITURAS[m]().then(r => { D[m] = r; desenha(); }, () => { algumFalhou = true; if (D[m] === undefined) falhou.add(m); desenha(); }));
   // obras (lista do cronograma), se o usuário tiver algum módulo que as use
-  if (['cronograma', 'estoque', 'material', 'retrabalhos', 'vistoria', 'entrega'].some(pode)) {
-    obras = await sb.from('crono_obras').select('nome,blocos').order('nome').then(ok).catch(() => []);
-    obraSel = obras.find(o => o.nome === mem.ler('obra'))?.nome || obras[0]?.nome || ''; desenha();
-  }
+  if (['cronograma', 'estoque', 'material', 'retrabalhos', 'vistoria', 'entrega'].some(pode))
+    leituras.push(sb.from('crono_obras').select('nome,blocos').order('nome').then(ok).then(o => { obras = o; escolheObra(); desenha(); }, () => { algumFalhou = true; }));
+  await Promise.all(leituras);
+  avisoCopia(algumFalhou ? '⚠️ Alguns números não atualizaram. Confira a internet.' : '');
+  copia.gravar('inicio', P, { obras, D: Object.fromEntries(Object.entries(D).filter(([m]) => NA_COPIA(m) && pode(m))) });
 }
 
 async function rotear() {
+  let c;
   try {
     if (!(await TMC.sessao())) return tela('login');
+    // abre na hora com a cópia guardada no aparelho; os números se atualizam em seguida
+    c = await copia.ler('inicio');
+    if (c) { P = c.perfil; mods = TMC.modulos(P); obras = c.dados.obras; D = c.dados.D; escolheObra(); mostrarPainel(); avisoCopia('🔄 Atualizando…'); }
     P = await TMC.perfil(); mods = TMC.modulos(P);
     if (!mods.length) return tela('semAcesso');
     if (mods.length === 1) return location.replace(TMC.MODULOS[mods[0]].pagina);
     abrirPainel();
-  } catch (e) { tela('login'); $('erro').textContent = 'Erro: ' + msg(e); }
+  } catch (e) {
+    if (c) return avisoCopia(`⚠️ Sem conexão: mostrando os dados de ${fmtDH(c.em)}.`);
+    tela('login'); $('erro').textContent = 'Erro: ' + msg(e);
+  }
 }
 rotear();
 </script>

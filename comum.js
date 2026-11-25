@@ -58,6 +58,25 @@ const memoria = prefixo => ({
   gravarJSON(k, v) { try { localStorage.setItem(prefixo + k, JSON.stringify(v)); } catch (e) {} }
 });
 
+// ----- cópia dos dados no aparelho: a página abre na hora com a última cópia e se atualiza em seguida -----
+// Só a do usuário logado vale, e o botão Sair apaga todas. Não guardar CPF nem valores da Prestação de Contas.
+const COPIA = 'tmc_copia_';
+const copia = {
+  async ler(nome) {
+    const s = await TMC.sessao(); if (!s) return null;
+    try { const c = JSON.parse(localStorage.getItem(COPIA + nome)); return c?.uid === s.user.id ? c : null; } catch (e) { return null; }
+  },
+  gravar(nome, perfil, dados) { try { localStorage.setItem(COPIA + nome, JSON.stringify({ uid: perfil.id, em: Date.now(), perfil, dados })); } catch (e) {} },
+  apagarTudo() { try { Object.keys(localStorage).filter(k => k.startsWith(COPIA)).forEach(k => localStorage.removeItem(k)); } catch (e) {} }
+};
+// Faixa logo abaixo do cabeçalho ("Atualizando…", "Sem conexão…"); texto vazio tira a faixa
+function avisoCopia(texto) {
+  let a = $('avisoCopia');
+  if (!texto) return a?.remove();
+  if (!a) { a = document.createElement('div'); a.id = 'avisoCopia'; a.setAttribute('role', 'status'); document.querySelector('header')?.after(a); }
+  a.textContent = texto;
+}
+
 // ----- janelas por cima da tela (prévia, assinatura, avisos) -----
 function abrirJanela(el) { el.hidden = false; document.body.style.overflow = 'hidden'; }
 function fecharJanela(el) { el.hidden = true; if (!document.querySelector('.overlay:not([hidden])')) document.body.style.overflow = ''; }
@@ -107,17 +126,42 @@ async function logoPdf() {
 }
 
 // ----- abertura padrão de cada página -----
-// Confere login e permissão e preenche o cabeçalho (nome, Início, Sair).
+TMC.sair = async function () { copia.apagarTudo(); await sb.auth.signOut(); location.replace('index.html'); };
+// Cabeçalho: nome, nível de acesso, Início e Sair
+TMC.cabecalho = function (perfil, editor, nivel = editor ? 'editor' : 'somente visualização') {
+  document.body.classList.toggle('view', !editor);
+  if ($('quem')) $('quem').textContent = `${perfil.nome} (${nivel})`;
+  if ($('linkInicio')) $('linkInicio').hidden = this.modulos(perfil).length < 2;
+  if ($('btnSair')) $('btnSair').onclick = () => this.sair();
+};
+// Confere login e permissão e preenche o cabeçalho.
 // carregar (opcional): busca os dados da página AO MESMO TEMPO que a conferência de acesso.
 TMC.iniciarPagina = async function (modulo, carregar) {
   const dados = carregar?.(); dados?.catch(() => {});        // sem acesso, a página volta para o início antes de usar os dados
   const perfil = await this.exigirAcesso(modulo), editor = perfil[modulo] === 'editar';
-  document.body.classList.toggle('view', !editor);
-  if ($('quem')) $('quem').textContent = `${perfil.nome} (${editor ? 'editor' : 'somente visualização'})`;
-  if ($('linkInicio')) $('linkInicio').hidden = this.modulos(perfil).length < 2;
-  if ($('btnSair')) $('btnSair').onclick = () => this.sair();
+  this.cabecalho(perfil, editor);
   await dados;
   return { perfil, editor };
+};
+// Igual ao iniciarPagina, mas mostra na hora a cópia guardada no aparelho (só para ver: editar fica travado)
+// e troca pelos dados do banco assim que chegam. guardar() devolve o que copiar; restaurar(d) usa a cópia;
+// desenhar({ perfil, editor }, aoVivo) desenha a página (aoVivo = false enquanto mostra a cópia).
+TMC.abrirComCopia = async function (modulo, { carregar, guardar, restaurar, desenhar }) {
+  const c = await copia.ler(modulo);
+  if (c) {
+    restaurar(c.dados); this.cabecalho(c.perfil, false, 'atualizando…');
+    this.mostrarPagina(); avisoCopia('🔄 Atualizando…'); desenhar({ perfil: c.perfil, editor: false }, false);
+  }
+  let r;
+  try { r = await this.iniciarPagina(modulo, carregar); }
+  catch (e) {
+    if (!c) throw e;
+    avisoCopia(`⚠️ Sem conexão: mostrando os dados de ${fmtDH(c.em)}. Para marcar ou editar, abra de novo com internet.`);
+    return new Promise(() => {});
+  }
+  this.mostrarPagina(); avisoCopia(''); desenhar(r, true);
+  copia.gravar(modulo, r.perfil, guardar());
+  return r;
 };
 TMC.mostrarPagina = function () { $('carregando')?.remove(); ($('sistema') || $('app'))?.classList.remove('oculto', 'hide'); };
 TMC.falhaAoAbrir = e => { const c = $('carregando'); if (c) c.textContent = 'Erro ao carregar: ' + msg(e); else toast(msg(e)); };

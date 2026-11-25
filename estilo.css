@@ -22,6 +22,7 @@ header.topo .prog i{display:block;height:100%;background:#fff;transition:width .
 /* aviso rápido */
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#2f2f2a;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90%}
 #toast.show{opacity:1}
+#avisoCopia{background:#fff6dc;color:var(--tinta);border-bottom:1px solid var(--borda);padding:6px 12px;font-size:13px;text-align:center}
 
 /* quem só visualiza não vê botões de edição */
 body.view .editor{display:none!important}
