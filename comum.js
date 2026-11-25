@@ -67,6 +67,8 @@ const copia = {
     try { const c = JSON.parse(localStorage.getItem(COPIA + nome)); return c?.uid === s.user.id ? c : null; } catch (e) { return null; }
   },
   gravar(nome, perfil, dados) { try { localStorage.setItem(COPIA + nome, JSON.stringify({ uid: perfil.id, em: Date.now(), perfil, dados })); } catch (e) {} },
+  // grava um instante depois da última mudança (vários cliques seguidos = uma gravação só)
+  gravarDepois(nome, perfil, guardar) { clearTimeout(this.t); this.t = setTimeout(() => this.gravar(nome, perfil, guardar()), 800); },
   apagarTudo() { try { Object.keys(localStorage).filter(k => k.startsWith(COPIA)).forEach(k => localStorage.removeItem(k)); } catch (e) {} }
 };
 // Faixa logo abaixo do cabeçalho ("Atualizando…", "Sem conexão…"); texto vazio tira a faixa

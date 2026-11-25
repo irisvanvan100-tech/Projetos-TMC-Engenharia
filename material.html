@@ -157,7 +157,7 @@ textarea{min-height:56px;resize:vertical}
 <script src="comum.js"></script>
 <script>
 const mem = memoria('tmc_mat_');
-let perfil, editor = false, obras = [], precos = [], entregas = [];
+let perfil, editor = false, aoVivo = false, obras = [], precos = [], entregas = [];
 const st = { obra: mem.ler('obra'), material: '', status: 'apagar', fornecedor: '', sel: new Set() };
 const data = d => new Date(d).toLocaleDateString('pt-BR');
 const hora = d => new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -174,6 +174,9 @@ async function carregar() {
   ]);
   precos = precos.map(p => ({ ...p, preco: +p.preco }));
   entregas = entregas.map(x => ({ ...x, quantidade: +x.quantidade, preco: +x.preco }));
+  prepara();
+}
+function prepara() {
   if (!obras.some(o => o.nome === st.obra)) st.obra = obras[0]?.nome || '';
   st.material = precos[0]?.material || '';
   entregas.filter(x => !x.pago_em).forEach(x => st.sel.add(x.id));     // a pagar já vêm marcadas para o PDF
@@ -214,7 +217,11 @@ $('registrar').onclick = async () => {
 const daObra = () => entregas.filter(x => x.obra === st.obra);
 const doFiltro = l => l.filter(x => !st.fornecedor || x.fornecedor === st.fornecedor);
 const selecionadas = () => doFiltro(daObra()).filter(x => !x.pago_em && st.sel.has(x.id));
+// Cópia no aparelho: a página abre na hora com ela e se atualiza com o banco em seguida
+const guardar = () => ({ obras, precos, entregas });
+const restaurar = d => { ({ obras, precos, entregas } = d); prepara(); };
 function render() {
+  if (aoVivo) copia.gravarDepois('material', perfil, guardar);     // mantém a cópia com as últimas entregas
   $('obra').innerHTML = obras.map(o => `<option ${o.nome === st.obra ? 'selected' : ''}>${esc(o.nome)}</option>`).join('') || '<option value="">Cadastre a obra no Cronograma</option>';
   $('tituloEnt').textContent = `3. Entregas de ${st.obra || '—'}`;
   $('registrar').textContent = `Registrar chegada em ${st.obra || '—'}`;
@@ -331,9 +338,8 @@ $('pagarSim').onclick = async () => {
 addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('ovPagar').hidden) fecharJanela($('ovPagar')); else if (!$('ov').hidden) fecharJanela($('ov')); } });
 
 (async () => {
-  ({ perfil, editor } = await TMC.iniciarPagina('material', carregar));
-  desenhaMats(); calcula(); render(); setInterval(calcula, 30000);
-  TMC.mostrarPagina();
+  await TMC.abrirComCopia('material', { carregar, guardar, restaurar, desenhar: (r, vivo) => { ({ perfil, editor } = r); aoVivo = vivo; desenhaMats(); calcula(); render(); } });
+  setInterval(calcula, 30000);
 })().catch(TMC.falhaAoAbrir);
 </script>
 </body>

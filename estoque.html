@@ -143,7 +143,7 @@ body:has(.fabC:not([hidden])) main{padding-bottom:80px}
 <script src="estoque_compras.js"></script>
 <script>
 
-let perfil, editor = false, materiais = [], movs = [], obras = [], resumo = {}, apelidos = {};
+let perfil, editor = false, aoVivo = false, materiais = [], movs = [], obras = [], resumo = {}, apelidos = {};
 const mem = memoria('tmc_est_');
 const st = { tela: 's', cat: 'TODAS', busca: '', obraFiltro: mem.ler('obra'), modo: mem.ler('modo') || 'um', conf: [] };
 
@@ -158,10 +158,16 @@ async function carregar() {
     carregarCompras()
   ]);
   ap.forEach(a => apelidos[a.texto] = a.material);
+  prepara();
+}
+function prepara() {
   if (st.obraFiltro && !obras.some(o => o.nome === st.obraFiltro)) st.obraFiltro = '';
   if (!st.obraFiltro && obras.length === 1) st.obraFiltro = obras[0].nome;
   calcula();
 }
+// Cópia no aparelho: a página abre na hora com ela e se atualiza com o banco em seguida
+const guardar = () => ({ materiais, movs, obras, apelidos, modelo, listas, perdaPadrao });
+const restaurar = d => { ({ materiais, movs, obras, apelidos, modelo, listas, perdaPadrao } = d); prepara(); };
 // Saldo de um material numa obra
 const saldoObra = (material, obra) => movs.filter(m => m.material === material && m.obra === obra).reduce((a, m) => a + (m.tipo === 'E' ? +m.quantidade : -m.quantidade), 0);
 // Saldo, último preço e preço médio de cada material (opcionalmente só de uma obra)
@@ -409,6 +415,7 @@ function rM() {
 }
 function render() {
   const ml = $('ml'); if (ml) st.lista = ml.value;
+  if (aoVivo) copia.gravarDepois('estoque', perfil, guardar);     // mantém a cópia com os últimos lançamentos
   if (!obras.length) { $('app').innerHTML = '<div class="card">Nenhuma obra cadastrada. As obras são cadastradas no <b>Cronograma</b> (aba Obras).</div>'; return; }
   $('app').innerHTML = { s: rS, m: rM, c: rC, p: rP }[st.tela]();
   desenhaConf(); atualizaBarra();
@@ -447,9 +454,7 @@ $('app').addEventListener('input', e => {
 });
 
 (async () => {
-  ({ perfil, editor } = await TMC.iniciarPagina('estoque', carregar));
-  TMC.mostrarPagina();
-  render();
+  await TMC.abrirComCopia('estoque', { carregar, guardar, restaurar, desenhar: (r, vivo) => { ({ perfil, editor } = r); aoVivo = vivo; render(); } });
 })().catch(TMC.falhaAoAbrir);
 </script>
 </body>

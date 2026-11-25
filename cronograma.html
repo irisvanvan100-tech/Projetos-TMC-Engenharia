@@ -194,7 +194,7 @@ function rH() {
 }
 function render() {
   if (st.obra) mem.gravar('obra', st.obra);
-  if (aoVivo) copia.gravar('cronograma', perfil, guardar());     // mantém a cópia com as últimas marcações
+  if (aoVivo) copia.gravarDepois('cronograma', perfil, guardar);     // mantém a cópia com as últimas marcações
   $('app').innerHTML = st.tela === 'c' ? rC() : st.tela === 'o' ? rO() : rH();
 }
 async function go(t) {
