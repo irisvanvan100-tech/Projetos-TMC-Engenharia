@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://aaajvihtdhpootilcgll.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#7A8B6F">
 <title>Cronograma | TMC Engenharia</title>
@@ -67,17 +68,18 @@ body.busy{cursor:progress}
 <script>
 const APTS = ['101', '102', '201', '202'], VAL = { A: 25, B: 50, C: 75, D: 100 };
 const mem = memoria('tmc_');
-// Busca todas as linhas (o Supabase devolve no máximo 1000 por vez)
-
 let perfil, editor = false, obras = [], status = {}, pesos = [], hist = [];
 const st = { tela: 'c', obra: null, bloco: 0, apt: -1, aberta: -1 };
 
 // ===== DADOS =====
 async function carregar() {
-  obras = await todos(() => sb.from('crono_obras').select('nome,blocos').order('nome'));
-  const linhas = await todos(() => sb.from('crono_status').select('obra,setor,item,apto,nivel'));
+  let linhas, ps;
+  [obras, linhas, ps] = await Promise.all([
+    todos(() => sb.from('crono_obras').select('nome,blocos').order('nome')),
+    todos(() => sb.from('crono_status').select('obra,setor,item,apto,nivel')),
+    sb.from('crono_pesos').select('setor,peso').then(ok)
+  ]);
   status = {}; linhas.forEach(r => { (status[r.obra] ??= {})[r.setor + '|' + r.item + '|' + r.apto] = r.nivel; });
-  const ps = ok(await sb.from('crono_pesos').select('*'));
   pesos = SETORES.map((_, i) => { const x = ps.find(p => p.setor === i); return x ? +x.peso : 0; });
   if (!pesos.some(p => p > 0)) pesos = SETORES.map(() => +(100 / SETORES.length).toFixed(2)); // sem pesos cadastrados: todos iguais
   if (!obras.some(o => o.nome === st.obra)) st.obra = (obras.find(o => o.nome === mem.ler('obra')) || obras[0])?.nome ?? null;
@@ -216,8 +218,7 @@ $('app').addEventListener('change', e => {
 });
 
 (async () => {
-  ({ perfil, editor } = await TMC.iniciarPagina('cronograma'));
-  await carregar();
+  ({ perfil, editor } = await TMC.iniciarPagina('cronograma', carregar));
   TMC.mostrarPagina();
   render();
 })().catch(TMC.falhaAoAbrir);

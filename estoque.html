@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://aaajvihtdhpootilcgll.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#7A8B6F">
 <title>Estoque | TMC Engenharia</title>
@@ -148,13 +149,15 @@ const st = { tela: 's', cat: 'TODAS', busca: '', obraFiltro: mem.ler('obra'), mo
 
 // ===== DADOS =====
 async function carregar() {
-  [materiais, movs, obras] = await Promise.all([
+  let ap;
+  [materiais, movs, obras, ap] = await Promise.all([
     todos(() => sb.from('materiais').select('*').order('categoria').order('nome')),
     todos(() => sb.from('movimentos').select('*').order('id')),
     todos(() => sb.from('crono_obras').select('nome,blocos').order('nome')),
+    todos(() => sb.from('material_apelidos').select('texto,material')).catch(() => []),   // tabela ainda não criada: segue sem aprendizado
     carregarCompras()
   ]);
-  try { (await todos(() => sb.from('material_apelidos').select('texto,material'))).forEach(a => apelidos[a.texto] = a.material); } catch (e) { /* tabela ainda não criada: segue sem aprendizado */ }
+  ap.forEach(a => apelidos[a.texto] = a.material);
   if (st.obraFiltro && !obras.some(o => o.nome === st.obraFiltro)) st.obraFiltro = '';
   if (!st.obraFiltro && obras.length === 1) st.obraFiltro = obras[0].nome;
   calcula();
@@ -444,8 +447,7 @@ $('app').addEventListener('input', e => {
 });
 
 (async () => {
-  ({ perfil, editor } = await TMC.iniciarPagina('estoque'));
-  await carregar();
+  ({ perfil, editor } = await TMC.iniciarPagina('estoque', carregar));
   TMC.mostrarPagina();
   render();
 })().catch(TMC.falhaAoAbrir);

@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://aaajvihtdhpootilcgll.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7A8B6F">
 <title>TMC Engenharia | Sistema</title>
@@ -180,7 +181,7 @@ const LEITURAS = {
     return { q, func: f.length, total: pts.reduce((a, p) => a + p.valor * diaria[p.funcionario_id], 0) };
   },
   async prestacao() {
-    const [c, l] = await Promise.all([sb.from('caixa').select('recebido').eq('id', 1).maybeSingle().then(r => +(r.data?.recebido || 0)), todos(() => sb.from('lancamentos').select('valor,comprovante'))]);
+    const [c, l] = await Promise.all([sb.from('caixa').select('recebido').eq('id', 1).limit(1).then(r => +(r.data?.[0]?.recebido || 0)), todos(() => sb.from('lancamentos').select('valor,comprovante'))]);
     return { saldo: c - l.reduce((a, x) => a + +x.valor, 0), sem: l.filter(x => !x.comprovante).length };
   }
 };
@@ -256,13 +257,13 @@ $('obras').onclick = e => { const b = e.target.closest('[data-obra]'); if (b) { 
 async function abrirPainel() {
   $('ola').innerHTML = `${ola()}, ${esc(P.nome)}<small>${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</small>`;
   tela('painel'); desenha(); continuar();
+  // cada módulo carrega em paralelo (junto com a lista de obras) e o painel se atualiza quando chega
+  mods.filter(m => LEITURAS[m]).forEach(m => LEITURAS[m]().then(r => { D[m] = r; desenha(); }, () => { falhou.add(m); desenha(); }));
   // obras (lista do cronograma), se o usuário tiver algum módulo que as use
   if (['cronograma', 'estoque', 'material', 'retrabalhos', 'vistoria', 'entrega'].some(pode)) {
-    try { obras = ok(await sb.from('crono_obras').select('nome,blocos').order('nome')); } catch (e) { obras = []; }
+    obras = await sb.from('crono_obras').select('nome,blocos').order('nome').then(ok).catch(() => []);
     obraSel = obras.find(o => o.nome === mem.ler('obra'))?.nome || obras[0]?.nome || ''; desenha();
   }
-  // cada módulo carrega em paralelo e o painel se atualiza quando chega
-  mods.filter(m => LEITURAS[m]).forEach(m => LEITURAS[m]().then(r => { D[m] = r; desenha(); }, () => { falhou.add(m); desenha(); }));
 }
 
 async function rotear() {

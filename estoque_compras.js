@@ -9,11 +9,12 @@ const cp = { obra: memC.ler('obraCompra'), sel: {}, listaId: null, nome: '', com
 
 async function carregarCompras() {
   try {
-    [modelo, listas] = await Promise.all([
+    let p;
+    [modelo, listas, p] = await Promise.all([
       todos(() => sb.from('modelo_bloco').select('*').order('ordem')),
-      todos(() => sb.from('listas_compra').select('*').order('criado_em', { ascending: false }))
+      todos(() => sb.from('listas_compra').select('*').order('criado_em', { ascending: false })),
+      sb.from('parametros').select('valor').eq('chave', 'perda_padrao').maybeSingle().then(ok)
     ]);
-    const p = ok(await sb.from('parametros').select('valor').eq('chave', 'perda_padrao').maybeSingle());
     if (p) perdaPadrao = +p.valor;
   } catch (e) { modelo = null; }   // banco ainda sem as tabelas novas
 }

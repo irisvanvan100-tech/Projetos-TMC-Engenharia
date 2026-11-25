@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://aaajvihtdhpootilcgll.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Folha de Ponto</title>
 <link rel="stylesheet" href="estilo.css">
@@ -169,13 +170,14 @@ function listaDias(ini, fim) {
 }
 
 async function iniciar() {
+  const lista = DB.quinzenas(); lista.catch(() => {});      // busca as quinzenas junto com a conferência de acesso
   ({ perfil, editor } = await TMC.iniciarPagina('folha'));
   TMC.mostrarPagina();
-  await carregarQuinzenas();
+  await carregarQuinzenas(null, lista);
 }
 
-async function carregarQuinzenas(selecionar) {
-  quinzenas = await DB.quinzenas();
+async function carregarQuinzenas(selecionar, lista = DB.quinzenas()) {
+  quinzenas = await lista;
   const sel = $('selQuinzena');
   sel.innerHTML = quinzenas.map(q => `<option value="${q.id}">${esc(q.obra)} — ${fmtData(q.data_inicio)} a ${fmtData(q.data_fim)}</option>`).join('');
   if (!quinzenas.length) {

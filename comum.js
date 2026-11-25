@@ -30,10 +30,13 @@ function cpfValido(s) {
 // ----- Supabase -----
 const ok = r => { if (r.error) throw r.error; return r.data; };
 const msg = e => (e && e.message) || 'Erro inesperado.';
-// Busca todas as linhas (o Supabase devolve no máximo 1000 por vez)
+// Busca todas as linhas. O Supabase devolve no máximo 1000 por vez: se a 1ª página vier cheia,
+// as próximas são buscadas 4 de cada vez, ao mesmo tempo (em vez de uma depois da outra).
 async function todos(consulta) {
-  let r = [];
-  for (let i = 0; ; i += 1000) { const d = ok(await consulta().range(i, i + 999)); r = r.concat(d); if (d.length < 1000) return r; }
+  const pagina = i => consulta().range(i, i + 999).then(ok);
+  let r = await pagina(0);
+  for (let i = 1000; r.length === i; i += 4000) r = r.concat(...await Promise.all([0, 1, 2, 3].map(k => pagina(i + k * 1000))));
+  return r;
 }
 // Abre um arquivo guardado (PDF, foto) numa aba nova. A aba é aberta já no clique: o celular bloqueia se abrir depois.
 async function abrirArquivo(espaco, caminho) {
@@ -104,13 +107,16 @@ async function logoPdf() {
 }
 
 // ----- abertura padrão de cada página -----
-// Confere login e permissão, preenche o cabeçalho (nome, Início, Sair) e mostra a página.
-TMC.iniciarPagina = async function (modulo) {
+// Confere login e permissão e preenche o cabeçalho (nome, Início, Sair).
+// carregar (opcional): busca os dados da página AO MESMO TEMPO que a conferência de acesso.
+TMC.iniciarPagina = async function (modulo, carregar) {
+  const dados = carregar?.(); dados?.catch(() => {});        // sem acesso, a página volta para o início antes de usar os dados
   const perfil = await this.exigirAcesso(modulo), editor = perfil[modulo] === 'editar';
   document.body.classList.toggle('view', !editor);
   if ($('quem')) $('quem').textContent = `${perfil.nome} (${editor ? 'editor' : 'somente visualização'})`;
   if ($('linkInicio')) $('linkInicio').hidden = this.modulos(perfil).length < 2;
   if ($('btnSair')) $('btnSair').onclick = () => this.sair();
+  await dados;
   return { perfil, editor };
 };
 TMC.mostrarPagina = function () { $('carregando')?.remove(); ($('sistema') || $('app'))?.classList.remove('oculto', 'hide'); };

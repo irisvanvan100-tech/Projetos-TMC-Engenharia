@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://aaajvihtdhpootilcgll.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7A8B6F">
 <title>Vistoria | TMC Engenharia</title>
@@ -434,8 +435,7 @@ $('abaNova').onclick = () => aba('nova'); $('abaGuard').onclick = () => aba('gua
 addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (!$('ov').hidden) $('btnFechar').click(); else if (!$('ovSig').hidden) fechaSig(); else if (!$('ovEnv').hidden) fechaEnv(); else if (!$('ovMsg').hidden) fechaAviso(); });
 
 (async () => {
-  ({ perfil, editor } = await TMC.iniciarPagina('vistoria'));
-  try { obras = ok(await sb.from('crono_obras').select('nome,blocos').order('nome')); } catch (e) { obras = []; }
+  ({ perfil, editor } = await TMC.iniciarPagina('vistoria', async () => { obras = await sb.from('crono_obras').select('nome,blocos').order('nome').then(ok).catch(() => []); }));
   $('obraList').innerHTML = obras.map(o => `<option value="${esc(o.nome)}">`).join('');
   preencheCampos(); desenhaAmbs(); desenhaSigs(); infos();
   if (!editor) { ['btnGuardar', 'btnEnviar', 'btnZerar'].forEach(id => $(id).disabled = true); }

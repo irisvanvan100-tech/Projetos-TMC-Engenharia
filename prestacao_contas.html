@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<link rel="preconnect" href="https://aaajvihtdhpootilcgll.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Prestação de Contas | Obras</title>
 <link rel="stylesheet" href="estilo.css">
@@ -256,11 +257,11 @@ $("bRec").onclick = async () => {
 };
 
 async function iniciar() {
+  load();                                    // busca os dados junto com a conferência de acesso
   const { editor } = await TMC.iniciarPagina("prestacao");
   leitor = !editor;
   document.body.classList.toggle("leitor", leitor);
   TMC.mostrarPagina();
-  load();
 }
 
 const money = v => brl(v).replace(/\u00a0/g, " "), dbr = d => d.split("-").reverse().join("/");

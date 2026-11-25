@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://aaajvihtdhpootilcgll.supabase.co" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7A8B6F">
 <title>Entrega de Chaves | TMC Engenharia</title>
@@ -105,9 +106,11 @@ const f = { vistoria: null, cpf: '', end: '', cidade: 'Itaitinga', data: hojeISO
 // Vistoria mais nova da mesma unidade (se a vistoria for guardada de novo, a entrega acompanha)
 function maisNova(obra, unidade) { return ultimas.get(chave(obra, unidade)) || null; }
 async function carregar() {
-  vistorias = ok(await sb.from('vistorias').select('id,criado_em,obra,unidade,cliente,data,pdf').order('criado_em', { ascending: false }).limit(2000));
+  [vistorias, registros] = await Promise.all([
+    sb.from('vistorias').select('id,criado_em,obra,unidade,cliente,data,pdf').order('criado_em', { ascending: false }).limit(2000).then(ok),
+    sb.from('entregas_chaves').select('*').order('criado_em', { ascending: false }).limit(2000).then(ok)
+  ]);
   ultimas = new Map(); vistorias.forEach(v => { const kk = chave(v.obra, v.unidade); if (!ultimas.has(kk)) ultimas.set(kk, v); });
-  registros = ok(await sb.from('entregas_chaves').select('*').order('criado_em', { ascending: false }).limit(2000));
 }
 function montaSelect() {
   const l = [...ultimas.values()].sort((a, b) => (a.obra + a.unidade).localeCompare(b.obra + b.unidade, 'pt', { numeric: true }));
@@ -240,8 +243,8 @@ function aba(t) {
 $('abaNova').onclick = () => aba('nova'); $('abaReg').onclick = () => aba('reg');
 
 (async () => {
-  ({ perfil, editor } = await TMC.iniciarPagina('entrega'));
-  await carregar(); montaSelect();
+  ({ perfil, editor } = await TMC.iniciarPagina('entrega', carregar));
+  montaSelect();
   // vindo da página Vistoria (?v=id): já seleciona a vistoria
   const pid = new URLSearchParams(location.search).get('v');
   if (pid) { const v = vistorias.find(x => x.id == pid); if (v) { const nova = maisNova(v.obra, v.unidade) || v; $('selVist').value = nova.id; escolhe(nova); } }
