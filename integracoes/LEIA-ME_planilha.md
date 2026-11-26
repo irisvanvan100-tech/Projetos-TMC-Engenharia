@@ -7,6 +7,7 @@ Quando o progresso é marcado no Cronograma do app, a planilha se atualiza sozin
 |---|---|---|
 | Residencial Amora | Cópia de CRONOGRAMA FISICO FINANCEIRO | 1 (APTOS = 4) |
 | Jabuti Fase 1 | FASE 1 (ligada ao app) | 3 (APTOS = 12) |
+| Jabuti Fase 2 | FASE 2.xlsx (aba CRONOGRAM) | 6 (APTOS = 24) — lista de itens própria (ver LINHAS) |
 
 ## Onde está cada coisa
 - **Programa da planilha:** dentro dela, em *Extensões → Apps Script* (código em `integracoes/planilha_cronograma.gs`).
@@ -20,7 +21,7 @@ Quando o progresso é marcado no Cronograma do app, a planilha se atualiza sozin
 ## Ligar uma obra nova
 1. Converter a planilha para Planilha Google (mesmo layout de linhas).
    Fórmulas de % sem casas decimais: `(A + B×2 + C×3 + D×4) / (4 × aptos)`. Planilha em português usa `;` entre os argumentos.
-2. Colar `planilha_cronograma.gs` no Apps Script, com uma chave secreta nova e `APTOS` = 4 × blocos.
+2. Colar `planilha_cronograma.gs` no Apps Script, com uma chave secreta nova, `APTOS` = 4 × blocos e `LINHAS` = linha de cada item do app na planilha (null se não existir).
 3. Implantar como App da Web (Executar como: Eu; Acesso: Qualquer pessoa).
 4. No SQL Editor: `insert into planilhas_obra (obra, url, segredo) values (...)` e `select sincronizar_planilhas('OBRA');`.
 
