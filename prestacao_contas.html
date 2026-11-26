@@ -172,11 +172,11 @@ function render() {
 $("flt").onchange = render;
 $("tL").onclick = async e => {
   const xd = e.target.closest("b[data-del]");
-  if (xd) { const f = fotos.find(x => x.id === +xd.dataset.del); if (leitor || !f || !confirm("Excluir esta foto?")) return;
+  if (xd) { const f = fotos.find(x => String(x.id) === xd.dataset.del); if (leitor || !f || !confirm("Excluir esta foto?")) return;
     try { await apagarFoto(f); load(); } catch (x) { fail(x); } return; }
-  const im = e.target.closest("img[data-foto]"); if (im) return abrir(+im.dataset.foto);
+  const im = e.target.closest("img[data-foto]"); if (im) return abrir(im.dataset.foto);
   const b = e.target.closest("button"); if (!b) return;
-  if (b.dataset.t === "cam" || b.dataset.t === "gal") { alvo = +b.dataset.id; return $(b.dataset.t === "cam" ? "inCamR" : "inGalR").click(); }
+  if (b.dataset.t === "cam" || b.dataset.t === "gal") { alvo = rows.find(x => String(x.id) === b.dataset.id)?.id ?? null; return $(b.dataset.t === "cam" ? "inCamR" : "inGalR").click(); }
   const r = rows.find(x => String(x.id) === b.dataset.id); if (!r || leitor) return;
   let res;
   if (b.dataset.t === "x") { if (!confirm("Excluir este lançamento e as fotos dele?")) return;
@@ -222,7 +222,7 @@ $("bCamF").onclick = () => $("inCamF").click(); $("bGalF").onclick = () => $("in
   try { await enviar(alvo, fs); st(""); await load(); } catch (x) { fail(x); st(""); }
 });
 function abrir(id) {
-  const f = fotos.find(x => x.id === id), r = f && rows.find(x => x.id === f.lancamento_id); if (!r) return;
+  const f = fotos.find(x => String(x.id) === String(id)), r = f && rows.find(x => x.id === f.lancamento_id); if (!r) return;
   fotoAberta = f; $("mImg").src = urls[f.caminho] || "";
   $("mCap").innerHTML = `<b>${esc(r.fornecedor)}</b> — ${esc(r.descricao)}<br>${esc(r.data.split("-").reverse().join("/"))} | ${esc(r.obra)} | ${esc(r.categoria)} | <b>${brl(r.valor)}</b>`;
   $("modal").classList.remove("hide");
@@ -333,7 +333,7 @@ $("bZerar").onclick = async () => {
   await etapa("Apagar fotos", async () => { const arqs = await todosArquivos();
     for (let i = 0; i < arqs.length; i += 100) ok(await sb.storage.from(BUCKET).remove(arqs.slice(i, i + 100)));
     return `${arqs.length} foto(s)`; });
-  await etapa("Apagar lançamentos", async () => { ok(await sb.from("comprovantes").delete().gt("id", 0)); ok(await sb.from("lancamentos").delete().gt("id", 0)); return `${nL} lançamento(s)`; });
+  await etapa("Apagar lançamentos", async () => { ok(await sb.from("comprovantes").delete().not("id", "is", null)); ok(await sb.from("lancamentos").delete().not("id", "is", null)); return `${nL} lançamento(s)`; });
   await etapa("Zerar o valor recebido em caixa", async () => { await salvarCaixa(0); });
   // Confere no banco: sem permissão, o banco não apaga e não avisa
   let sobra = null;

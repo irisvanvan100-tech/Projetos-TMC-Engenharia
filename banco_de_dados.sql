@@ -27,12 +27,18 @@ create table if not exists caixa (
   id int primary key default 1 check (id = 1),
   recebido numeric(12,2) not null default 0
 );
-create table if not exists comprovantes (
-  id bigint generated always as identity primary key,
-  lancamento_id bigint not null references lancamentos(id) on delete cascade,
-  caminho text not null unique,
-  criado_em timestamptz not null default now()
-);
+-- Fotos dos comprovantes. O código do lançamento segue o tipo que a tabela lancamentos já tem
+-- no banco (número ou uuid, conforme a versão em que ela foi criada).
+do $$ begin
+  if to_regclass('public.comprovantes') is null then
+    execute format('create table comprovantes (
+      id bigint generated always as identity primary key,
+      lancamento_id %s not null references lancamentos(id) on delete cascade,
+      caminho text not null unique,
+      criado_em timestamptz not null default now())',
+      (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.lancamentos'::regclass and attname = 'id'));
+  end if;
+end $$;
 create index if not exists lancamentos_data_idx on lancamentos (data desc);
 create index if not exists lancamentos_obra_idx on lancamentos (obra);
 create index if not exists comprovantes_lanc_idx on comprovantes (lancamento_id);
