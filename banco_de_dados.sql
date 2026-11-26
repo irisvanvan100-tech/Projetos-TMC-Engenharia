@@ -819,5 +819,58 @@ on conflict (material) do nothing;
 
 insert into parametros (chave, valor) values ('perda_padrao', 5) on conflict (chave) do nothing;
 
+-- ----------------------------------------------------------------------------
+-- 9) PLANILHA GOOGLE DO CRONOGRAMA (o app atualiza a planilha sozinho)
+--    A cada marcação no Cronograma, o banco manda o andamento da obra para o programa
+--    (Apps Script) da planilha, que escreve as letras A/B/C/D nas células.
+--    A ligação de cada obra (endereço + chave secreta) é cadastrada à parte, fora deste arquivo.
+-- ----------------------------------------------------------------------------
+do $$ begin create extension if not exists pg_net;              -- permite ao banco chamar um endereço da internet
+exception when others then raise notice 'pg_net indisponível: a planilha não será atualizada'; end $$;
+
+create table if not exists planilhas_obra (
+  obra text primary key references crono_obras(nome) on update cascade on delete cascade,
+  url text not null,                      -- endereço do Apps Script publicado como "App da Web"
+  segredo text not null,                  -- mesma chave escrita no Apps Script
+  ativo boolean not null default true
+);
+alter table planilhas_obra enable row level security;           -- sem regras de acesso: o site não lê a chave
+
+-- Envia o andamento completo da(s) obra(s) para a planilha (só o bloco 1 entra: aptos 101, 102, 201, 202)
+create or replace function sincronizar_planilhas(so_obra text default null) returns int
+language plpgsql security definer set search_path = public as $$
+declare p record; n int := 0;
+begin
+  for p in select * from planilhas_obra where ativo and (so_obra is null or obra = so_obra) loop
+    perform net.http_post(
+      url := p.url,
+      body := jsonb_build_object('segredo', p.segredo, 'obra', p.obra,
+        'marcas', coalesce((select jsonb_agg(jsonb_build_array(setor, item, apto, nivel)) from crono_status where obra = p.obra and apto < 4), '[]'::jsonb)),
+      headers := '{"Content-Type": "application/json"}'::jsonb,
+      timeout_milliseconds := 30000);
+    n := n + 1;
+  end loop;
+  return n;
+end $$;
+-- só o próprio banco chama esta função (o site não consegue)
+do $$ declare r text; begin
+  revoke all on function sincronizar_planilhas(text) from public;
+  for r in select rolname from pg_roles where rolname in ('anon', 'authenticated') loop
+    execute format('revoke all on function sincronizar_planilhas(text) from %I', r);
+  end loop;
+end $$;
+
+-- Depois de cada marcação (uma vez por gravação, mesmo marcando vários aptos de uma vez).
+-- Se a planilha falhar, a marcação no app continua valendo normalmente.
+create or replace function crono_status_planilha() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  begin perform sincronizar_planilhas(); exception when others then raise warning 'planilha: %', sqlerrm; end;
+  return null;
+end $$;
+drop trigger if exists crono_status_planilha on crono_status;
+create trigger crono_status_planilha after insert or update or delete on crono_status
+  for each statement execute function crono_status_planilha();
+
 -- Avisa o Supabase para recarregar a lista de tabelas (evita o erro "schema cache")
 notify pgrst, 'reload schema';
