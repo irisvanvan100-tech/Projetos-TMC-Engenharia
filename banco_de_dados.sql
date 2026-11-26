@@ -842,7 +842,7 @@ create table if not exists planilhas_obra (
 );
 alter table planilhas_obra enable row level security;           -- sem regras de acesso: o site não lê a chave
 
--- Envia o andamento completo da(s) obra(s) para a planilha (só o bloco 1 entra: aptos 101, 102, 201, 202)
+-- Envia o andamento completo da(s) obra(s) para a planilha (o programa da planilha usa os blocos que ela tiver)
 create or replace function sincronizar_planilhas(so_obra text default null) returns int
 language plpgsql security definer set search_path = public as $$
 declare p record; n int := 0;
@@ -851,7 +851,7 @@ begin
     perform net.http_post(
       url := p.url,
       body := jsonb_build_object('segredo', p.segredo, 'obra', p.obra,
-        'marcas', coalesce((select jsonb_agg(jsonb_build_array(setor, item, apto, nivel)) from crono_status where obra = p.obra and apto < 4), '[]'::jsonb)),
+        'marcas', coalesce((select jsonb_agg(jsonb_build_array(setor, item, apto, nivel)) from crono_status where obra = p.obra), '[]'::jsonb)),
       headers := '{"Content-Type": "application/json"}'::jsonb,
       timeout_milliseconds := 30000);
     n := n + 1;

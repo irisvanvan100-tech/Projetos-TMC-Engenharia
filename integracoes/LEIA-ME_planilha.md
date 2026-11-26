@@ -1,16 +1,27 @@
-# Cronograma do app → Planilha Google (Residencial Amora)
+# Cronograma do app → Planilha Google
 
 Quando o progresso é marcado no Cronograma do app, a planilha se atualiza sozinha.
 
+## Obras ligadas
+| Obra | Planilha (Drive, pasta *Teste Claude – atualização de planilha*) | Blocos |
+|---|---|---|
+| Residencial Amora | Cópia de CRONOGRAMA FISICO FINANCEIRO | 1 (APTOS = 4) |
+| Jabuti Fase 1 | FASE 1 (ligada ao app) | 3 (APTOS = 12) |
+
 ## Onde está cada coisa
-- **Planilha:** Google Drive → pasta *Teste Claude – atualização de planilha* → **Cópia de CRONOGRAMA FISICO FINANCEIRO** (aba CRONOGRAMA).
 - **Programa da planilha:** dentro dela, em *Extensões → Apps Script* (código em `integracoes/planilha_cronograma.gs`).
 - **Banco de dados:** Supabase, projeto `aaajvihtdhpootilcgll` (tabela `planilhas_obra`, parte 9 do `banco_de_dados.sql`).
 
 ## Como funciona
 1. Você marca um item no Cronograma do app.
 2. O banco envia o andamento da obra para o programa da planilha.
-3. O programa escreve as letras A/B/C/D nas colunas B a E (aptos 101, 102, 201, 202 do bloco 1).
+3. O programa escreve as letras A/B/C/D a partir da coluna B (101, 102, 201, 202 de cada bloco, em sequência).
+
+## Ligar uma obra nova
+1. Converter a planilha para Planilha Google (mesmo layout de linhas).
+2. Colar `planilha_cronograma.gs` no Apps Script, com uma chave secreta nova e `APTOS` = 4 × blocos.
+3. Implantar como App da Web (Executar como: Eu; Acesso: Qualquer pessoa).
+4. No SQL Editor: `insert into planilhas_obra (obra, url, segredo) values (...)` e `select sincronizar_planilhas('OBRA');`.
 
 ## Regras
 - Quem manda é o **app**: o que for escrito à mão na planilha é trocado no próximo envio.

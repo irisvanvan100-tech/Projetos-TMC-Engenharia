@@ -6,12 +6,14 @@
  * o andamento completo da obra, e este programa escreve as letras A/B/C/D nas células.
  *
  * A planilha segue a mesma ordem de setores e itens do app (setores.js).
- * Colunas B, C, D, E = apartamentos 101, 102, 201, 202 (bloco 1).
+ * Apartamentos a partir da coluna B, na ordem do app: 101, 102, 201, 202 do bloco 1,
+ * depois os do bloco 2, e assim por diante (APTOS = 4 × número de blocos da planilha).
  */
 
 const SEGREDO = 'COLE_AQUI_A_CHAVE_SECRETA';     // a mesma cadastrada no banco (tabela planilhas_obra)
 const ABA = 'CRONOGRAMA';
-const COLUNA_101 = 2;                             // coluna B
+const APTOS = 4;                                  // colunas de apartamentos: 4 = 1 bloco, 12 = 3 blocos
+const COLUNA_101 = 2;                             // coluna B = apto 101 do bloco 1
 // Linha do 1º item de cada setor e quantos itens ele tem (mesma ordem do app)
 const SETORES = [
   { linha: 5,   itens: 6 },   // SERVIÇOS PRELIMINARES
@@ -43,11 +45,11 @@ function doPost(e) {
 // Reescreve as letras de todos os itens (o que não veio do app fica em branco)
 function escrever(marcas) {
   const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ABA);
-  const grade = SETORES.map(s => Array.from({ length: s.itens }, () => ['', '', '', '']));
+  const grade = SETORES.map(s => Array.from({ length: s.itens }, () => Array(APTOS).fill('')));
   marcas.forEach(([setor, item, apto, letra]) => {
-    if (grade[setor] && grade[setor][item] && apto >= 0 && apto < 4) grade[setor][item][apto] = String(letra).toUpperCase();
+    if (grade[setor] && grade[setor][item] && apto >= 0 && apto < APTOS) grade[setor][item][apto] = String(letra).toUpperCase();
   });
-  SETORES.forEach((s, i) => aba.getRange(s.linha, COLUNA_101, s.itens, 4).setValues(grade[i]));
+  SETORES.forEach((s, i) => aba.getRange(s.linha, COLUNA_101, s.itens, APTOS).setValues(grade[i]));
 }
 
 const resposta = obj => ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
